@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getStudentMetrics, type StudentMetrics } from "../../api/estudiantes";
 import {
   BarChart,
@@ -80,6 +81,15 @@ export function StudentDashboard() {
           <span>Calificaciones registradas</span>
           <strong>{metrics.grades_count}</strong>
         </div>
+      </section>
+
+      <section className="card" style={{ marginBottom: 16 }}>
+        <h3 style={{ marginTop: 0 }}>Acceso rápido</h3>
+        <p>
+          En <Link to="/student/enrollments">Inscripciones</Link> puedes ver tus materias y los{" "}
+          <strong>profesores asignados</strong>. En{" "}
+          <Link to="/student/grades">Calificaciones</Link> ves las notas que te han puesto tus docentes.
+        </p>
       </section>
 
       <section className="charts-row" aria-label="Gráficas del dashboard">

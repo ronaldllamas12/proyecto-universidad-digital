@@ -16,13 +16,14 @@ import { StudentEnrollmentsPage } from "../pages/student/StudentEnrollmentsPage"
 import { StudentGradesPage } from "../pages/student/StudentGradesPage";
 import { TeacherDashboard } from "../pages/teacher/TeacherDashboard";
 import { TeacherGradesPage } from "../pages/teacher/TeacherGradesPage";
+import { TeacherEnrollmentsPage } from "../pages/teacher/TeacherEnrollmentsPage";
 import { useAuth } from "../hooks/useAuth";
 import { AdminLayout } from "../layouts/AdminLayout";
 import { StudentLayout } from "../layouts/StudentLayout";
 import { DocenteLayout } from "../layouts/DocenteLayout";
 import { UsersPageFilter } from "../pages/admin/UsersFilter";
 import { SubjectsListFilter } from "../pages/admin/subjectsFilters";
-
+import { TeacherSubjectsPage } from "../pages/teacher/TeacherSubject";
 function HomeRedirect() {
   const { user, isLoading } = useAuth();
   if (isLoading) {
@@ -115,6 +116,8 @@ export function AppRoutes() {
       >
         <Route index element={<TeacherDashboard />} />
         <Route path="grades" element={<TeacherGradesPage />} />
+        <Route path="enrollments" element={<TeacherEnrollmentsPage />} />
+        <Route path="subjects" element={<TeacherSubjectsPage />} />
       </Route>
 
       <Route
@@ -125,6 +128,27 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/teacher/enrollments"
+        element={
+          <ProtectedRoute roles={["Docente"]}>
+            <TeacherEnrollmentsPage />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/teacher/subjects"
+        element={
+          <ProtectedRoute roles={["Docente"]}>
+            <TeacherSubjectsPage />
+          </ProtectedRoute>
+        }
+      />
+
+
+
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

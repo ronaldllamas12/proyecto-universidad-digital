@@ -6,6 +6,7 @@ from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.core.database import Base
+from app.enrollments.models import Enrollment
 
 
 class User(Base):
@@ -22,7 +23,11 @@ class User(Base):
     )
 
     roles = relationship("Role", secondary="user_roles", back_populates="users")
-    enrollments = relationship("Enrollment", back_populates="user")
+    enrollments = relationship(
+        "Enrollment",
+        back_populates="user",
+        foreign_keys=[Enrollment.user_id],
+    )
 
     @validates("email")
     def _normalize_email(self, _: str, value: str) -> str:

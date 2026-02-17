@@ -3,10 +3,11 @@ import { http } from "./http";
 export type GradeResponse = {
   id: number;
   enrollment_id: number;
-  value: number;
-  user_name: string;
+  value: number | null;
+  user_name?: string | null;
   notes: string | null;
   created_at: string;
+  subject_name:string
 };
 
 export type GradeCreate = {

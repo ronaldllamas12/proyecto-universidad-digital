@@ -22,12 +22,13 @@ class GradeUpdate(BaseModel):
 
 
 class GradeResponse(BaseModel):
-    """Datos expuestos al cliente."""
+    """Datos expuestos al cliente. value=None cuando el usuario es Administrador."""
 
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     enrollment_id: int
-    value: Decimal
-    notes: str | None
+    value: Decimal | None = None
+    notes: str | None = None
     created_at: datetime
+    user_name: str | None = None

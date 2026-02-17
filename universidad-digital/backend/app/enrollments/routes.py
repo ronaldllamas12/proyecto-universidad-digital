@@ -22,7 +22,7 @@ def create_enrollment_endpoint(
     payload: EnrollmentCreate,
     db: Session = Depends(get_db),
     user=Depends(get_current_user_dep),
-    _user=Depends(require_roles_dep("Administrador", "Estudiante")),
+    _admin=Depends(require_roles_dep("Administrador")),
 ) -> EnrollmentResponse:
     return create_enrollment(db, payload, user)
 

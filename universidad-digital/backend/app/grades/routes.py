@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user_dep, get_db, require_roles_dep
+from app.enrollments.models import Enrollment
 from app.grades.schemas import GradeCreate, GradeResponse, GradeUpdate
 from app.grades.services import create_grade, delete_grade, get_grade, list_grades, update_grade
 
@@ -15,9 +16,10 @@ router = APIRouter(prefix="/grades", tags=["grades"])
 def create_grade_endpoint(
     payload: GradeCreate,
     db: Session = Depends(get_db),
-    _user=Depends(require_roles_dep("Administrador", "Docente")),
+    user=Depends(get_current_user_dep),
+    _teacher=Depends(require_roles_dep("Docente")),
 ) -> GradeResponse:
-    return create_grade(db, payload)
+    return create_grade(db, payload, user)
 
 
 @router.get("/", response_model=list[GradeResponse])
@@ -36,7 +38,28 @@ def get_grade_endpoint(
     user=Depends(get_current_user_dep),
     _user=Depends(require_roles_dep("Administrador", "Docente", "Estudiante")),
 ) -> GradeResponse:
-    return get_grade(db, grade_id, user)
+    grade = get_grade(db, grade_id, user)
+    if any(r.name == "Administrador" for r in user.roles):
+        enrollment = db.get(Enrollment, grade.enrollment_id)
+        user_name = enrollment.user.full_name if enrollment and enrollment.user else None
+        return GradeResponse(
+            id=grade.id,
+            enrollment_id=grade.enrollment_id,
+            value=None,
+            notes=grade.notes,
+            created_at=grade.created_at,
+            user_name=user_name,
+        )
+    enrollment = db.get(Enrollment, grade.enrollment_id)
+    user_name = enrollment.user.full_name if enrollment and enrollment.user else None
+    return GradeResponse(
+        id=grade.id,
+        enrollment_id=grade.enrollment_id,
+        value=grade.value,
+        notes=grade.notes,
+        created_at=grade.created_at,
+        user_name=user_name,
+    )
 
 
 @router.put("/{grade_id}", response_model=GradeResponse)
@@ -45,7 +68,7 @@ def update_grade_endpoint(
     payload: GradeUpdate,
     db: Session = Depends(get_db),
     user=Depends(get_current_user_dep),
-    _user=Depends(require_roles_dep("Administrador", "Docente")),
+    _teacher=Depends(require_roles_dep("Docente")),
 ) -> GradeResponse:
     return update_grade(db, grade_id, payload, user)
 
@@ -55,7 +78,7 @@ def delete_grade_endpoint(
     grade_id: int,
     db: Session = Depends(get_db),
     user=Depends(get_current_user_dep),
-    _user=Depends(require_roles_dep("Administrador", "Docente")),
+    _teacher=Depends(require_roles_dep("Docente")),
 ) -> Response:
     delete_grade(db, grade_id, user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

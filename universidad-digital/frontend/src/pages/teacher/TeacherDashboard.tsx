@@ -2,6 +2,7 @@ import { useFetch } from "../../hooks/useFetch";
 import { getTeacherMetrics, type TeacherMetrics } from "../../api/teachers";
 import { Alert } from "../../components/Alert";
 import { getErrorMessage } from "../../utils/apiError";
+import { NavLink } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -70,15 +71,22 @@ export function TeacherDashboard() {
       </header>
 
       <section className="metrics-grid" aria-label="Métricas principales">
-        <div className="metric-card">
-          <div className="metric-card__icon metric-card__icon--primary" aria-hidden />
-          <span>Materias asignadas</span>
-          <strong>{metrics.total_subjects}</strong>
-        </div>
+        
+        
+          <div className="metric-card">
+          <NavLink to={"/teacher/subjects"}>
+            <div className="metric-card__icon metric-card__icon--primary" aria-hidden />
+            <span>Materias asignadas</span>
+            <strong>{metrics.total_subjects}</strong>
+          </NavLink>
+          </div>
+        
         <div className="metric-card">
           <div className="metric-card__icon metric-card__icon--success" aria-hidden />
-          <span>Estudiantes</span>
-          <strong>{metrics.total_students}</strong>
+          <NavLink to={"/teacher/enrollments"}>
+            <span>Estudiantes</span>
+            <strong>{metrics.total_students}</strong>
+          </NavLink>
         </div>
         <div className="metric-card">
           <div className="metric-card__icon metric-card__icon--warning" aria-hidden />

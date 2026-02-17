@@ -4,16 +4,21 @@ export type EnrollmentResponse = {
   id: number;
   user_id: number;
   subject_id: number;
-  name: string;
   period_id: number;
+  teacher_id?: number | null;
   is_active: boolean;
   enrolled_at: string;
+  subject_name?: string | null;
+  period_name?: string | null;
+  user_name?: string | null;
+  teacher_name?: string | null;
 };
 
 export type EnrollmentCreate = {
   user_id: number;
   subject_id: number;
   period_id: number;
+  teacher_id?: number | null;
 };
 
 export type EnrollmentUpdate = {
