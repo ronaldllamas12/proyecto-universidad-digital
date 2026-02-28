@@ -10,7 +10,7 @@ load_dotenv()
 class Settings(BaseSettings):
     """Configuración centralizada de la aplicación."""
     @property
-def db_url(self) -> str:
+    def db_url(self) -> str:
     # 1️⃣ usa Neon en Vercel
     vercel_db = os.getenv("POSTGRES_URL")
 
