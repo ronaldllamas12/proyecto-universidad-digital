@@ -472,7 +472,7 @@ p {
 ====================================================== */
 
 .charts-row {
-  display: grid;
+  display:grid;
   gap: 1.5rem;
   margin-top: 1.5rem;
 }

@@ -31,19 +31,20 @@ export async function listEnrollments() {
 }
 
 export async function createEnrollment(payload: EnrollmentCreate) {
-  const { data } = await http.post<EnrollmentResponse>("/enrollments", payload);
-  return data;
-}
-
-export async function updateEnrollment(id: number, payload: EnrollmentUpdate) {
-  const { data } = await http.put<EnrollmentResponse>(
-    `/enrollments/${id}`,
-    payload,
+  const { data } = await http.post<EnrollmentResponse>(
+    "/enrollments",
+    payload
   );
   return data;
 }
 
-export async function deactivateEnrollment(id: number) {
-  const { data } = await http.delete<EnrollmentResponse>(`/enrollments/${id}`);
+export async function updateEnrollment(
+  id: number,
+  payload: EnrollmentUpdate
+) {
+  const { data } = await http.put<EnrollmentResponse>(
+    `/enrollments/${id}`,
+    payload
+  );
   return data;
 }

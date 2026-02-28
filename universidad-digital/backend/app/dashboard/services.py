@@ -6,37 +6,30 @@ from app.subjects.models import Subject
 from app.periods.models import AcademicPeriod
 from app.roles.models import Role
 from app.enrollments.models import Enrollment
-from app.grades.models import Grade 
-#===========================
+from app.grades.models import Grade
+
+
+# ===========================
 # DASHBOARD  ADMINISTRADOR
-#===========================
+# ===========================
 def get_admin_dashboard(db: Session):
 
     # Total usuarios activos
-    total_users = (
-        db.query(func.count(User.id))
-        .filter(User.is_active == True)
-        .scalar()
-    )
+    total_users = db.query(func.count(User.id)).filter(User.is_active == True).scalar()
 
     #  Total estudiantes activos
     total_students = (
         db.query(func.count(User.id))
         .join(User.roles)
-        .filter(
-            Role.name == "Estudiante",
-            User.is_active == True
-        ).scalar()
+        .filter(Role.name == "Estudiante", User.is_active == True)
+        .scalar()
     )
 
     # Total docentes activos
     total_teachers = (
         db.query(func.count(User.id.distinct()))
         .join(User.roles)
-        .filter(
-            Role.name == "Docente",
-            User.is_active == True
-        )
+        .filter(Role.name == "Docente", User.is_active == True)
         .scalar()
     )
 
@@ -45,15 +38,18 @@ def get_admin_dashboard(db: Session):
 
     # Materias inactivas
     inactive_subjects = (
-        db.query(func.count(Subject.id))
-        .filter(Subject.is_active == False)
-        .scalar()
+        db.query(func.count(Subject.id)).filter(Subject.is_active == False).scalar()
     )
 
     #  Periodos activos
     active_periods = (
         db.query(func.count(AcademicPeriod.id))
         .filter(AcademicPeriod.is_active == True)
+        .scalar()
+    )
+    total_enrollments = (
+        db.query(func.count(Enrollment.id))
+        .filter(Enrollment.is_active == True)
         .scalar()
     )
 
@@ -64,11 +60,14 @@ def get_admin_dashboard(db: Session):
         "total_subjects": total_subjects,
         "inactive_subjects": inactive_subjects,
         "active_periods": active_periods,
+        "total_enrollments": total_enrollments,
     }
 
-#===========================
+
+# ===========================
 # DASHBOARD  DOCENTE
-#===========================
+# ===========================
+
 
 def get_teacher_dashboard(db: Session, current_user):
     # Inscripciones donde el docente está asignado (teacher_id)
@@ -81,15 +80,25 @@ def get_teacher_dashboard(db: Session, current_user):
     subject_ids = list({e.subject_id for e in enrollments})
     period_ids = list({e.period_id for e in enrollments})
     active_periods = (
-        db.query(func.count(AcademicPeriod.id))
-        .filter(AcademicPeriod.id.in_(period_ids), AcademicPeriod.is_active == True)
-        .scalar()
-    ) if period_ids else 0
+        (
+            db.query(func.count(AcademicPeriod.id))
+            .filter(AcademicPeriod.id.in_(period_ids), AcademicPeriod.is_active == True)
+            .scalar()
+        )
+        if period_ids
+        else 0
+    )
     total_users = db.query(func.count(User.id)).filter(User.is_active == True).scalar()
 
     grades_count = (
-        db.query(func.count(Grade.id)).filter(Grade.enrollment_id.in_(enrollment_ids)).scalar()
-    ) if enrollment_ids else 0
+        (
+            db.query(func.count(Grade.id))
+            .filter(Grade.enrollment_id.in_(enrollment_ids))
+            .scalar()
+        )
+        if enrollment_ids
+        else 0
+    )
 
     return {
         "teacher": current_user.full_name,
@@ -97,12 +106,14 @@ def get_teacher_dashboard(db: Session, current_user):
         "total_students": len(enrollments),
         "active_periods": active_periods or 0,
         "total_users": total_users or 0,
+        "total_grades": grades_count,
     }
 
 
-#===========================
+# ===========================
 # DASHBOARD  ESTUDIANTE
-#===========================
+# ===========================
+
 
 def get_student_dashboard(db: Session, current_user):
     enrollments = (
@@ -113,13 +124,23 @@ def get_student_dashboard(db: Session, current_user):
     enrollment_ids = [e.id for e in enrollments]
     period_ids = list({e.period_id for e in enrollments})
     active_periods = (
-        db.query(func.count(AcademicPeriod.id))
-        .filter(AcademicPeriod.id.in_(period_ids), AcademicPeriod.is_active == True)
-        .scalar()
-    ) if period_ids else 0
+        (
+            db.query(func.count(AcademicPeriod.id))
+            .filter(AcademicPeriod.id.in_(period_ids), AcademicPeriod.is_active == True)
+            .scalar()
+        )
+        if period_ids
+        else 0
+    )
     grades_count = (
-        db.query(func.count(Grade.id)).filter(Grade.enrollment_id.in_(enrollment_ids)).scalar()
-    ) if enrollment_ids else 0
+        (
+            db.query(func.count(Grade.id))
+            .filter(Grade.enrollment_id.in_(enrollment_ids))
+            .scalar()
+        )
+        if enrollment_ids
+        else 0
+    )
 
     return {
         "name": current_user.full_name,

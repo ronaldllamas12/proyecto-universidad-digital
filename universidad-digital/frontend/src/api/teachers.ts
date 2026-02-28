@@ -5,6 +5,7 @@ export type TeacherMetrics = {
   total_students: number;
   active_periods: number;
   total_users: number;
+  total_grades:number;
 };
 
 export async function getTeacherMetrics() {

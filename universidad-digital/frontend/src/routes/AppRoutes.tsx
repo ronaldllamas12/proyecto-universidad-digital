@@ -24,6 +24,11 @@ import { DocenteLayout } from "../layouts/DocenteLayout";
 import { UsersPageFilter } from "../pages/admin/UsersFilter";
 import { SubjectsListFilter } from "../pages/admin/subjectsFilters";
 import { TeacherSubjectsPage } from "../pages/teacher/TeacherSubject";
+import { EnrollmentsFilter } from "../pages/admin/EnrollmentsFilter";
+import { PeriodsFilters } from "../pages/admin/PeriodFilters";
+import { TeacherGradesFilters } from "../pages/teacher/TeacherGradesFilters";
+import { TasksPage } from "../pages/admin/TasksPage";
+
 function HomeRedirect() {
   const { user, isLoading } = useAuth();
   if (isLoading) {
@@ -61,10 +66,13 @@ export function AppRoutes() {
         <Route path="users" element={<UsersPage />} />
         <Route path="subjects" element={<SubjectsPage />} />
         <Route path="periods" element={<PeriodsPage />} />
+        <Route path="periods/Filter" element={<PeriodsFilters />} />
         <Route path="enrollments" element={<EnrollmentsPage />} />
+        <Route path="enrollments/Filter" element={<EnrollmentsFilter />} />
         <Route path="grades" element={<GradesPage />} />
         <Route path="users/list" element={<UsersPageFilter />} />
         <Route path="subject/Filter" element={<SubjectsListFilter />} />
+        <Route path="tasks" element={<TasksPage />} />
       </Route>
 
       <Route
@@ -82,31 +90,6 @@ export function AppRoutes() {
       </Route>
 
       <Route
-        path="/student/subjects"
-        element={
-          <ProtectedRoute roles={["Estudiante"]}>
-            <StudentSubjectsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/student/enrollments"
-        element={
-          <ProtectedRoute roles={["Estudiante"]}>
-            <StudentEnrollmentsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/student/grades"
-        element={
-          <ProtectedRoute roles={["Estudiante"]}>
-            <StudentGradesPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
         path="/teacher"
         element={
           <ProtectedRoute roles={["Docente"]}>
@@ -118,37 +101,8 @@ export function AppRoutes() {
         <Route path="grades" element={<TeacherGradesPage />} />
         <Route path="enrollments" element={<TeacherEnrollmentsPage />} />
         <Route path="subjects" element={<TeacherSubjectsPage />} />
+        <Route path="grades/Filter" element={<TeacherGradesFilters />} />
       </Route>
-
-      <Route
-        path="/teacher/grades"
-        element={
-          <ProtectedRoute roles={["Docente"]}>
-            <TeacherGradesPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/teacher/enrollments"
-        element={
-          <ProtectedRoute roles={["Docente"]}>
-            <TeacherEnrollmentsPage />
-          </ProtectedRoute>
-        }
-      />
-      
-      <Route
-        path="/teacher/subjects"
-        element={
-          <ProtectedRoute roles={["Docente"]}>
-            <TeacherSubjectsPage />
-          </ProtectedRoute>
-        }
-      />
-
-
-
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

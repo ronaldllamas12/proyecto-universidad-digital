@@ -33,24 +33,25 @@ def list_periods(db: Session) -> list[AcademicPeriod]:
 
 def get_period(db: Session, period_id: int) -> AcademicPeriod:
     """Obtiene un periodo académico por ID."""
-    period = db.get(AcademicPeriod, period_id)
-    if not period:
+    if period := db.get(AcademicPeriod, period_id):
+        return period
+    else:
         raise NotFoundError("Periodo académico no encontrado.")
-    return period
+    
+
+
 
 
 def update_period(db: Session, period_id: int, data: AcademicPeriodUpdate) -> AcademicPeriod:
     """Actualiza un periodo académico."""
     period = get_period(db, period_id)
-    if data.start_date is not None and data.end_date is not None:
-        if data.end_date < data.start_date:
-            raise ConflictError("La fecha de fin no puede ser anterior a la de inicio.")
-    if data.start_date is not None and data.end_date is None:
-        if period.end_date < data.start_date:
-            raise ConflictError("La fecha de fin no puede ser anterior a la de inicio.")
-    if data.end_date is not None and data.start_date is None:
-        if data.end_date < period.start_date:
-            raise ConflictError("La fecha de fin no puede ser anterior a la de inicio.")
+    if data.start_date is not None and data.end_date is not None and data.end_date < data.start_date:
+        raise ConflictError("La fecha de fin no puede ser anterior a la de inicio.")
+    if data.start_date is not None and data.end_date is None and period.end_date < data.start_date:
+        raise ConflictError("La fecha de fin no puede ser anterior a la de inicio.")
+    if data.end_date is not None and data.start_date is None and data.end_date < period.start_date:
+        raise ConflictError("La fecha de fin no puede ser anterior a la de inicio.")
+        
     if data.name is not None:
         period.name = data.name
     if data.start_date is not None:

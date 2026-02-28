@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,8 +22,18 @@ from app.dashboard.router import router as dashboard_router
 
 
 
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    init_db()
+    db = SessionLocal()
+    try:
+        ensure_default_roles(db)
+    finally:
+        db.close()
+    yield
 
-app = FastAPI(title=settings.api_title, version=settings.api_version)
+
+app = FastAPI(title=settings.api_title, version=settings.api_version, lifespan=lifespan)
 
 if settings.is_production:
     if not settings.jwt_secret:
@@ -38,15 +50,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
-
-@app.on_event("startup")
-def on_startup() -> None:
-    init_db()
-    db = SessionLocal()
-    try:
-        ensure_default_roles(db)
-    finally:
-        db.close()
 
 
 @app.exception_handler(NotFoundError)

@@ -8,3 +8,4 @@ class AdminDashboardResponse(BaseModel):
     total_subjects: int
     inactive_subjects: int
     active_periods: int
+    total_enrollments: int

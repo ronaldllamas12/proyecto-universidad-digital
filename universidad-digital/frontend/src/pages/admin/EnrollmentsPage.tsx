@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "../../components/Button";
 import { Select } from "../../components/Select";
-import { Table } from "../../components/Table";
 import { Alert } from "../../components/Alert";
 import { enrollmentsService } from "../../services/enrollmentsService";
 import { usersService } from "../../services/usersService";
@@ -12,8 +11,6 @@ import { subjectsService } from "../../services/subjectsService";
 import { periodsService } from "../../services/periodsService";
 import { useFetch } from "../../hooks/useFetch";
 import { getErrorMessage } from "../../utils/apiError";
-import type { EnrollmentResponse } from "../../api/enrollments";
-
 const createSchema = z.object({
   user_id: z.string().min(1, "Selecciona un estudiante"),
   subject_id: z.string().min(1, "Selecciona una materia"),
@@ -29,8 +26,8 @@ export function EnrollmentsPage() {
     variant: "success" | "error";
   } | null>(null);
   const {
-    data: enrollments,
-    error,
+    data: 
+    
     isLoading,
     reload,
   } = useFetch(enrollmentsService.list, []);
@@ -85,15 +82,9 @@ export function EnrollmentsPage() {
     }
   };
 
-  const handleDeactivate = async (id: number) => {
-    try {
-      await enrollmentsService.deactivate(id);
-      setAlert({ message: "Inscripción cancelada.", variant: "success" });
-      await reload();
-    } catch (err) {
-      setAlert({ message: getErrorMessage(err), variant: "error" });
-    }
-  };
+  
+
+  
 
   return (
     <>
@@ -140,52 +131,7 @@ export function EnrollmentsPage() {
         </form>
       </div>
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <h2>Listado de inscripciones</h2>
-        {error ? <Alert message={error} /> : null}
-        {isLoading ? (
-          <p>Cargando...</p>
-        ) : (
-          <Table<EnrollmentResponse>
-            caption="Listado de inscripciones"
-            data={enrollments ?? []}
-            columns={[
-              { header: "ID", render: (row) => row.id },
-              {
-                header: "Estudiante",
-                render: (row) => row.user_name ?? `#${row.user_id}`,
-              },
-              {
-                header: "Materia",
-                render: (row) => row.subject_name ?? `#${row.subject_id}`,
-              },
-              {
-                header: "Periodo",
-                render: (row) => row.period_name ?? `#${row.period_id}`,
-              },
-              {
-                header: "Docente",
-                render: (row) => row.teacher_name ?? row.teacher_id ? `#${row.teacher_id}` : "—",
-              },
-              {
-                header: "Activo",
-                render: (row) => (row.is_active ? "Sí" : "No"),
-              },
-              {
-                header: "Acciones",
-                render: (row) => (
-                  <Button
-                    variant="danger"
-                    onClick={() => void handleDeactivate(row.id)}
-                  >
-                    Cancelar
-                  </Button>
-                ),
-              },
-            ]}
-          />
-        )}
-      </div>
+      
     </>
   );
 }

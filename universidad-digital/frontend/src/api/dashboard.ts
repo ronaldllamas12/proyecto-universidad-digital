@@ -6,6 +6,7 @@ export type AdminMetrics = {
   total_teachers: number;
   total_subjects: number;
   active_periods: number;
+  total_enrollments: number;
 };
 
 export async function getAdminMetrics(): Promise<AdminMetrics> {

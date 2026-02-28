@@ -35,3 +35,11 @@ tzdata==2025.3
 uvicorn==0.40.0
 watchfiles==1.1.1
 websockets==16.0
+
+# Dependencias para Testing y Desarrollo
+pytest
+pytest-cov
+pytest-asyncio
+httpx  # Cliente HTTP asíncrono para testear APIs
+factory-boy  # Para crear datos de prueba (factories)
+Faker  # Para generar datos falsos realistas

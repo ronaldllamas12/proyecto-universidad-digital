@@ -25,7 +25,10 @@ export function StudentGradesPage() {
             data={data ?? []}
             columns={[
               { header: "ID", render: (row) => row.id },
-              { header: "Inscripción", render: (row) => row.enrollment_id },
+              {
+                header: "Inscripción",
+                render: (row) => row.subject_name ?? `#${row.enrollment_id}`,
+              },
               {
                 header: "Nota",
                 render: (row) => (row.value != null ? String(row.value) : "—"),

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 
 from app.core.errors import ConflictError, NotFoundError
 from app.subjects.models import Subject
 from app.subjects.schemas import SubjectCreate, SubjectUpdate
+from app.enrollments.models import Enrollment
 
 
 def create_subject(db: Session, data: SubjectCreate) -> Subject:
@@ -20,9 +21,31 @@ def create_subject(db: Session, data: SubjectCreate) -> Subject:
 
 
 def list_subjects(db: Session) -> list[Subject]:
-    
-    """Lista materias."""
-    return list(db.scalars(select(Subject).order_by(Subject.id)).all())
+    """Lista materias con cantidad de estudiantes inscritos."""
+
+    stmt = (
+        select(
+            Subject,
+            func.count(Enrollment.id).label("students_count"),
+        )
+        .outerjoin(
+            Enrollment,
+            (Enrollment.subject_id == Subject.id) & (Enrollment.is_active == True),
+        )
+        .group_by(Subject.id)
+        .order_by(Subject.id)
+    )
+
+    results = db.execute(stmt).all()
+
+    subjects: list[Subject] = []
+
+    for subject, students_count in results:
+        # 👇 agregamos atributo dinámico
+        subject.students_count = students_count
+        subjects.append(subject)
+
+    return subjects
 
 
 def get_subject(db: Session, subject_id: int) -> Subject:

@@ -21,7 +21,11 @@ const CHART_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#3b82f6"];
 function buildTeacherChartData(metrics: TeacherMetrics) {
   return [
     { name: "Materias", value: metrics.total_subjects, color: CHART_COLORS[0] },
-    { name: "Estudiantes", value: metrics.total_students, color: CHART_COLORS[1] },
+    {
+      name: "Estudiantes",
+      value: metrics.total_students,
+      color: CHART_COLORS[1],
+    },
     { name: "Periodos", value: metrics.active_periods, color: CHART_COLORS[2] },
     { name: "Usuarios", value: metrics.total_users, color: CHART_COLORS[3] },
   ];
@@ -59,7 +63,11 @@ export function TeacherDashboard() {
   }
 
   const barData = buildTeacherChartData(metrics);
-  const pieData = barData.map(({ name, value, color }) => ({ name, value, color }));
+  const pieData = barData.map(({ name, value, color }) => ({
+    name,
+    value,
+    color,
+  }));
 
   return (
     <div className="dashboard-page">
@@ -71,41 +79,58 @@ export function TeacherDashboard() {
       </header>
 
       <section className="metrics-grid" aria-label="Métricas principales">
-        
-        
-          <div className="metric-card">
+        <div className="metric-card">
           <NavLink to={"/teacher/subjects"}>
-            <div className="metric-card__icon metric-card__icon--primary" aria-hidden />
+            <div
+              className="metric-card__icon metric-card__icon--primary"
+              aria-hidden
+            />
             <span>Materias asignadas</span>
             <strong>{metrics.total_subjects}</strong>
           </NavLink>
-          </div>
-        
+        </div>
+
         <div className="metric-card">
-          <div className="metric-card__icon metric-card__icon--success" aria-hidden />
           <NavLink to={"/teacher/enrollments"}>
-            <span>Estudiantes</span>
+            <div
+              className="metric-card__icon metric-card__icon--success"
+              aria-hidden
+            />
+          
+            <span>Estudiantes Inscritos</span>
             <strong>{metrics.total_students}</strong>
           </NavLink>
         </div>
         <div className="metric-card">
-          <div className="metric-card__icon metric-card__icon--warning" aria-hidden />
-          <span>Periodos activos</span>
-          <strong>{metrics.active_periods}</strong>
+          
+          <NavLink to={"/teacher/grades/Filter"}>
+            <div
+              className="metric-card__icon metric-card__icon--warning"
+              aria-hidden
+            />
+            <span>Calificaciones de Estudiantes</span>
+            <strong>{metrics.total_grades}</strong>
+          </NavLink>
         </div>
-        <div className="metric-card">
-          <div className="metric-card__icon metric-card__icon--info" aria-hidden />
-          <span>Usuarios totales</span>
-          <strong>{metrics.total_users}</strong>
-        </div>
+        
       </section>
 
       <section className="charts-row" aria-label="Gráficas del dashboard">
-        <article className="chart-card">
+        <article className="chart-card chart-card--full">
           <h3 className="chart-card__title">Resumen por categoría</h3>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={barData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+            <BarChart
+              data={barData}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
+              <XAxis
+  dataKey="name"
+  interval={0}
+  angle={-25}
+  textAnchor="end"
+  height={60}
+  tick={{ fontSize: 11 }}
+/>
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
                 contentStyle={{
@@ -121,9 +146,9 @@ export function TeacherDashboard() {
             </BarChart>
           </ResponsiveContainer>
         </article>
-        <article className="chart-card">
+        <article className="chart-card chart-card--full">
           <h3 className="chart-card__title">Distribución</h3>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={380}>
             <PieChart>
               <Pie
                 data={pieData}
@@ -131,7 +156,7 @@ export function TeacherDashboard() {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={90}
+                outerRadius={120}
                 label={({ name, value }) => `${name}: ${value}`}
               >
                 {pieData.map((entry, index) => (

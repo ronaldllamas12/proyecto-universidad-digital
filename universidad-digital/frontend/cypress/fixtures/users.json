@@ -1,0 +1,10 @@
+{
+  "admin": {
+    "email": "admin@universidad.com",
+    "password": "password123456"
+  },
+  "invalid": {
+    "email": "wrong@universidad.com",
+    "password": "invalid-password"
+  }
+}

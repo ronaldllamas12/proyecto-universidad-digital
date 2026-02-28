@@ -1,0 +1,20 @@
+{
+  "initialTasks": [
+    {
+      "id": "task-1",
+      "title": "Preparar informe QA",
+      "completed": false
+    },
+    {
+      "id": "task-2",
+      "title": "Validar persistencia",
+      "completed": true
+    }
+  ],
+  "newTask": {
+    "title": "Crear tarea desde Cypress"
+  },
+  "invalidTask": {
+    "title": ""
+  }
+}

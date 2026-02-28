@@ -1,0 +1,30 @@
+[run]
+# Directorio fuente sobre el que se medirá la cobertura
+source = app
+
+[report]
+# ¡Regla crítica! Falla la ejecución si la cobertura es menor al 85%
+fail_under = 85
+
+# Muestra las líneas de código que no están cubiertas
+show_missing = True
+
+# Omitir del reporte los archivos con cobertura del 100%
+skip_covered = True
+
+# Excluir líneas de código que no necesitan ser probadas
+exclude_lines =
+    # Directiva para ignorar una línea específica
+    pragma: no cover
+
+    # Definiciones de clases y funciones abstractas
+    from abc import
+    @abstractmethod
+
+    # Código de depuración o bloques de entrada
+    if __name__ == .__main__.:
+    if self.debug:
+
+[html]
+# Directorio donde se generará el reporte HTML interactivo
+directory = coverage_html_report

@@ -38,16 +38,24 @@ def login_endpoint(
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout_endpoint(
     request: Request,
-    response: Response,
     db: Session = Depends(get_db),
 ) -> Response:
+    """
+    Cierra sesión del usuario actual.
+
+    Siempre devuelve una respuesta HTTP válida (204) aunque falle la revocación
+    del token, para evitar estados inconsistentes y errores en el servidor.
+    """
     token = request.cookies.get(settings.cookie_name)
     if token:
         try:
             jti, expires_at = extract_token_data(token)
             revoke_token(db, jti, expires_at)
         except Exception:  # noqa: BLE001
+            # No queremos romper el logout por errores de revocación
             pass
+
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
     response.delete_cookie(settings.cookie_name)
     return response
 

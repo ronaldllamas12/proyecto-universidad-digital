@@ -75,14 +75,14 @@ export function AdminDashboard() {
           <span>Usuarios</span>
           <strong>{metrics.total_users}</strong>
         </NavLink>
+
         <NavLink
-          to="/admin/users/list?role=student&active=true"
-          className="metric-card metric-card--link"
-        >
+          to="/admin/users/list?role=student&active=true" className="metric-card metric-card--link">
           <div className="metric-card__icon metric-card__icon--success" aria-hidden />
           <span>Estudiantes activos</span>
           <strong>{metrics.total_students}</strong>
         </NavLink>
+        
         <NavLink
           to="/admin/users/list?role=teacher&active=true"
           className="metric-card metric-card--link"
@@ -91,24 +91,39 @@ export function AdminDashboard() {
           <span>Docentes activos</span>
           <strong>{metrics.total_teachers}</strong>
         </NavLink>
-        <NavLink to="/admin/subject/filter" className="metric-card metric-card--link">
+
+        <NavLink to="/admin/subject/Filter" className="metric-card metric-card--link">
           <div className="metric-card__icon metric-card__icon--info" aria-hidden />
           <span>Materias</span>
           <strong>{metrics.total_subjects}</strong>
         </NavLink>
-        <div className="metric-card">
+        <NavLink to="/admin/periods/Filter" className="metric-card metric-card--link">
+            <div className="metric-card__icon metric-card__icon--primary" aria-hidden />
+            <span>Periodos activos</span>
+            <strong>{metrics.active_periods}</strong>
+        </NavLink>
+        
+        <NavLink to="/admin/enrollments/Filter" className="metric-card metric-card--link">
           <div className="metric-card__icon metric-card__icon--primary" aria-hidden />
-          <span>Periodos activos</span>
-          <strong>{metrics.active_periods}</strong>
-        </div>
+          <span>Inscripciones</span>
+          <strong>{metrics.total_enrollments}</strong>
+        </NavLink>
+        
       </section>
 
       <section className="charts-row" aria-label="Gráficas del dashboard">
-        <article className="chart-card">
+        <article className="chart-card chart-card--full">
           <h3 className="chart-card__title">Distribución por categoría</h3>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={barData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <XAxis
+  dataKey="name"
+  interval={0}
+  angle={-25}
+  textAnchor="end"
+  height={90}
+  tick={{ fontSize: 11 }}
+/>
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
                 contentStyle={{
@@ -124,9 +139,9 @@ export function AdminDashboard() {
             </BarChart>
           </ResponsiveContainer>
         </article>
-        <article className="chart-card">
+        <article className="chart-card chart-card--full">
           <h3 className="chart-card__title">Proporción del sistema</h3>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={290}>
             <PieChart>
               <Pie
                 data={pieData}
@@ -134,7 +149,8 @@ export function AdminDashboard() {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={90}
+                outerRadius={100}
+
                 label={({ name, value }) => `${name}: ${value}`}
               >
                 {pieData.map((entry, index) => (
@@ -145,6 +161,7 @@ export function AdminDashboard() {
                 contentStyle={{
                   borderRadius: "8px",
                   border: "1px solid var(--border)",
+                  
                 }}
               />
               <Legend />

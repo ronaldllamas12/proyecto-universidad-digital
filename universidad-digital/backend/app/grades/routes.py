@@ -18,8 +18,9 @@ def create_grade_endpoint(
     db: Session = Depends(get_db),
     user=Depends(get_current_user_dep),
     _teacher=Depends(require_roles_dep("Docente")),
-) -> GradeResponse:
+):
     return create_grade(db, payload, user)
+
 
 
 @router.get("/", response_model=list[GradeResponse])
@@ -39,9 +40,11 @@ def get_grade_endpoint(
     _user=Depends(require_roles_dep("Administrador", "Docente", "Estudiante")),
 ) -> GradeResponse:
     grade = get_grade(db, grade_id, user)
+    enrollment = db.get(Enrollment, grade.enrollment_id)
+    user_name = enrollment.user.full_name if enrollment and enrollment.user else None
+    subject_name = enrollment.subject.name if enrollment and enrollment.subject else None
+
     if any(r.name == "Administrador" for r in user.roles):
-        enrollment = db.get(Enrollment, grade.enrollment_id)
-        user_name = enrollment.user.full_name if enrollment and enrollment.user else None
         return GradeResponse(
             id=grade.id,
             enrollment_id=grade.enrollment_id,
@@ -49,9 +52,9 @@ def get_grade_endpoint(
             notes=grade.notes,
             created_at=grade.created_at,
             user_name=user_name,
+            subject_name=subject_name,
         )
-    enrollment = db.get(Enrollment, grade.enrollment_id)
-    user_name = enrollment.user.full_name if enrollment and enrollment.user else None
+
     return GradeResponse(
         id=grade.id,
         enrollment_id=grade.enrollment_id,
@@ -59,6 +62,7 @@ def get_grade_endpoint(
         notes=grade.notes,
         created_at=grade.created_at,
         user_name=user_name,
+        subject_name=subject_name,
     )
 
 
@@ -69,7 +73,7 @@ def update_grade_endpoint(
     db: Session = Depends(get_db),
     user=Depends(get_current_user_dep),
     _teacher=Depends(require_roles_dep("Docente")),
-) -> GradeResponse:
+) :
     return update_grade(db, grade_id, payload, user)
 
 
