@@ -50,11 +50,11 @@ La app se levanta en `http://localhost:3000`.
 
 ### 5. Flujo de autenticación
 
-1) Login en `/auth/login` devuelve JWT.
-2) El token se guarda solo en **memoria** (no LocalStorage).
-3) Axios usa interceptores para adjuntar `Authorization` si existe token.
-4) Si el backend usa cookie HttpOnly, se envía con `withCredentials`.
-5) `/auth/me` valida la sesión y retorna roles.
+1. Login en `/auth/login` devuelve JWT.
+2. El token se guarda solo en **memoria** (no LocalStorage).
+3. Axios usa interceptores para adjuntar `Authorization` si existe token.
+4. Si el backend usa cookie HttpOnly, se envía con `withCredentials`.
+5. `/auth/me` valida la sesión y retorna roles.
 
 ### 6. Seguridad aplicada (OWASP Frontend)
 
@@ -74,38 +74,60 @@ La app se levanta en `http://localhost:3000`.
 - Estructura semántica con `main`, `header`, `nav`.
 
 Limitaciones conocidas:
+
 - Las tablas no usan paginación ni ordenamiento aún.
 - El modal es básico (no gestiona foco interno).
 
 ### 8. Auditoría final (resumen)
 
 **Calidad de código**
+
 - SoC y SRP aplicados (api, servicios, pages, components).
 - Tipado estricto TypeScript.
 - Componentes reutilizables con props tipadas.
 
 **Seguridad**
+
 - Tokens solo en memoria.
 - Interceptores con manejo de 401.
 - Sin exposición de detalles internos.
 
 **Accesibilidad**
+
 - Inputs con labels.
 - Alertas con `role="alert"`.
 - Navegación visible y semántica.
 
 **UX**
+
 - Mensajes claros en formularios.
 - Flujos por rol separados.
 
 ### 9. Rutas disponibles
 
 Públicas:
+
 - `/login`
 - `/denied`
 - `/500`
 
 Protegidas:
+
 - `/admin` y subsecciones
 - `/teacher` y subsecciones
 - `/student` y subsecciones
+
+### 10. Deploy en Vercel
+
+1. En Vercel, importar el repositorio y configurar **Root Directory** como `frontend`.
+2. Verificar:
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+3. Crear variable de entorno en Vercel:
+   - `VITE_API_BASE_URL=https://TU_BACKEND_URL`
+4. Deploy.
+
+Notas:
+
+- Se agregó `frontend/vercel.json` para soportar SPA routing (`/ruta` -> `index.html`).
+- Usa `frontend/.env.example` como referencia para entorno local.

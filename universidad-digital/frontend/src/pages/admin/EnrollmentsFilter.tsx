@@ -8,9 +8,6 @@ import { useFetch } from "../../hooks/useFetch";
 import { getErrorMessage } from "../../utils/apiError";
 import type { EnrollmentResponse } from "../../api/enrollments";
 
-
-
-
 export function EnrollmentsFilter() {
   const [alert, setAlert] = useState<{
     message: string;
@@ -22,37 +19,36 @@ export function EnrollmentsFilter() {
     isLoading,
     reload,
   } = useFetch(enrollmentsService.list, []);
-  
-
 
   const handleToggle = async (row: EnrollmentResponse) => {
-  try {
-    await enrollmentsService.update(row.id, {
-      is_active: !row.is_active,
-    });
+    try {
+      await enrollmentsService.update(row.id, {
+        is_active: !row.is_active,
+      });
 
-    setAlert({
-      message: row.is_active
-        ? "Inscripción cancelada."
-        : "Inscripción activada.",
-      variant: "success",
-    });
+      setAlert({
+        message: row.is_active
+          ? "Inscripción cancelada."
+          : "Inscripción activada.",
+        variant: "success",
+      });
 
-    await reload();
-  } catch (err) {
-    setAlert({
-      message: getErrorMessage(err),
-      variant: "error",
-    });
-  }
-};
+      await reload();
+    } catch (err) {
+      setAlert({
+        message: getErrorMessage(err),
+        variant: "error",
+      });
+    }
+  };
 
   return (
     <>
-      
-
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Listado de inscripciones</h2>
+        {alert ? (
+          <Alert message={alert.message} variant={alert.variant} />
+        ) : null}
         {error ? <Alert message={error} /> : null}
         {isLoading ? (
           <p>Cargando...</p>
@@ -76,7 +72,10 @@ export function EnrollmentsFilter() {
               },
               {
                 header: "Docente",
-                render: (row) => row.teacher_name ?? row.teacher_id ? `${row.teacher_name}` : "Por asignar",
+                render: (row) =>
+                  (row.teacher_name ?? row.teacher_id)
+                    ? `${row.teacher_name}`
+                    : "Por asignar",
               },
               {
                 header: "Activo",

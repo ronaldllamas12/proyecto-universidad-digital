@@ -31,11 +31,7 @@ export function PeriodsPage() {
     message: string;
     variant: "success" | "error";
   } | null>(null);
-  const {
-    data: 
-    isLoading,
-    reload,
-  } = useFetch(periodsService.list, []);
+  const { reload } = useFetch(periodsService.list, []);
 
   const createForm = useForm<CreateForm>({
     resolver: zodResolver(createSchema),
@@ -70,7 +66,6 @@ export function PeriodsPage() {
     }
   };
 
-  
   return (
     <>
       <div className="grid grid-2">
@@ -139,7 +134,6 @@ export function PeriodsPage() {
           </form>
         </div>
       </div>
-
     </>
   );
 }

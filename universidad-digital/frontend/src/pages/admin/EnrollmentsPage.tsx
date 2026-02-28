@@ -25,12 +25,7 @@ export function EnrollmentsPage() {
     message: string;
     variant: "success" | "error";
   } | null>(null);
-  const {
-    data: 
-    
-    isLoading,
-    reload,
-  } = useFetch(enrollmentsService.list, []);
+  const { reload } = useFetch(enrollmentsService.list, []);
   const { data: users } = useFetch(usersService.list, []);
   const { data: subjects } = useFetch(subjectsService.list, []);
   const { data: periods } = useFetch(periodsService.list, []);
@@ -39,10 +34,8 @@ export function EnrollmentsPage() {
     resolver: zodResolver(createSchema),
   });
 
-  const students =
-    users?.filter((u) => u.roles?.includes("Estudiante")) ?? [];
-  const teachers =
-    users?.filter((u) => u.roles?.includes("Docente")) ?? [];
+  const students = users?.filter((u) => u.roles?.includes("Estudiante")) ?? [];
+  const teachers = users?.filter((u) => u.roles?.includes("Docente")) ?? [];
   const activePeriods = periods?.filter((p) => p.is_active) ?? [];
 
   const studentOptions = students.map((user) => ({
@@ -81,10 +74,6 @@ export function EnrollmentsPage() {
       setAlert({ message: getErrorMessage(err), variant: "error" });
     }
   };
-
-  
-
-  
 
   return (
     <>
@@ -130,8 +119,6 @@ export function EnrollmentsPage() {
           <Button type="submit">Crear inscripción</Button>
         </form>
       </div>
-
-      
     </>
   );
 }

@@ -7,7 +7,6 @@ import { useFetch } from "../../hooks/useFetch";
 import { getErrorMessage } from "../../utils/apiError";
 import type { PeriodResponse } from "../../api/periods";
 
-
 export function PeriodsFilters() {
   const [alert, setAlert] = useState<{
     message: string;
@@ -40,47 +39,49 @@ export function PeriodsFilters() {
   };
   return (
     <>
-
-    <div className="card" style={{ marginTop: 16 }}>
+      <div className="card" style={{ marginTop: 16 }}>
         <h2>Listado de periodos</h2>
+        {alert ? (
+          <Alert message={alert.message} variant={alert.variant} />
+        ) : null}
         {error ? <Alert message={error} /> : null}
         {isLoading ? (
-        <p>Cargando...</p>
+          <p>Cargando...</p>
         ) : (
-        <Table<PeriodResponse>
+          <Table<PeriodResponse>
             caption="Listado de periodos"
             data={periods ?? []}
             columns={[
-            { header: "ID", render: (row) => row.id },
-            { header: "Código", render: (row) => row.code },
-            { header: "Nombre", render: (row) => row.name },
-            { header: "Inicio", render: (row) => row.start_date },
-            { header: "Fin", render: (row) => row.end_date },
-            {
+              { header: "ID", render: (row) => row.id },
+              { header: "Código", render: (row) => row.code },
+              { header: "Nombre", render: (row) => row.name },
+              { header: "Inicio", render: (row) => row.start_date },
+              { header: "Fin", render: (row) => row.end_date },
+              {
                 header: "Activo",
                 render: (row) => (row.is_active ? "Sí" : "No"),
-            },
-            {
+              },
+              {
                 header: "Acciones",
                 render: (row) =>
-                row.is_active ? (
-                <Button
-                    variant="danger"
-                    onClick={() => void handleDeactivate(row.id)}
-                >
-                    Desactivar
-                </Button>
-                ) : (
-                <Button
-                    variant="primary"
-                    onClick={() => void handleActivate(row.id)}
-                >
-                    Activar
-                </Button>
-                ),
-            },
+                  row.is_active ? (
+                    <Button
+                      variant="danger"
+                      onClick={() => void handleDeactivate(row.id)}
+                    >
+                      Desactivar
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      onClick={() => void handleActivate(row.id)}
+                    >
+                      Activar
+                    </Button>
+                  ),
+              },
             ]}
-        />
+          />
         )}
       </div>
     </>

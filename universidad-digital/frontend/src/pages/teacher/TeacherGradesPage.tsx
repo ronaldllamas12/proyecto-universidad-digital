@@ -11,7 +11,6 @@ import { enrollmentsService } from "../../services/enrollmentsService";
 import { useFetch } from "../../hooks/useFetch";
 import { getErrorMessage } from "../../utils/apiError";
 
-
 const createSchema = z.object({
   enrollment_id: z.string().min(1),
   value: z.coerce.number().min(0).max(100),
@@ -32,11 +31,7 @@ export function TeacherGradesPage() {
     message: string;
     variant: "success" | "error";
   } | null>(null);
-  const {
-    data: 
-    isLoading,
-    reload,
-  } = useFetch(gradesService.list, []);
+  const { reload } = useFetch(gradesService.list, []);
   const { data: enrollments } = useFetch(enrollmentsService.list, []);
 
   const createForm = useForm<CreateForm>({
@@ -147,8 +142,6 @@ export function TeacherGradesPage() {
           </form>
         </div>
       </div>
-
-      
     </>
   );
 }

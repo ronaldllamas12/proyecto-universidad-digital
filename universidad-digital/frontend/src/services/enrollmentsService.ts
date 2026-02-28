@@ -4,5 +4,4 @@ export const enrollmentsService = {
   list: enrollmentsApi.listEnrollments,
   create: enrollmentsApi.createEnrollment,
   update: enrollmentsApi.updateEnrollment,
-  deactivate: enrollmentsApi.deactivateEnrollment,
 };
