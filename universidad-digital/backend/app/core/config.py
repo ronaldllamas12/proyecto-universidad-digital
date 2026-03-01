@@ -12,13 +12,14 @@ class Settings(BaseSettings):
     @property
     def db_url(self) -> str:
     # 1️⃣ usa Neon en Vercel
-    vercel_db = os.getenv("POSTGRES_URL")
+        import os
+        vercel_db = os.getenv("POSTGRES_URL")
 
-    if vercel_db:
-        return vercel_db
+        if vercel_db:
+            return vercel_db
 
     # 2️⃣ si no existe → usa local
-    return self.database_url
+        return self.database_url
     model_config = SettingsConfigDict(env_file=".env", env_prefix="APP_", extra="ignore")
 
     env: str = Field(default="development")
