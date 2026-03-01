@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from dotenv import load_dotenv
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -9,17 +11,16 @@ load_dotenv()
 
 class Settings(BaseSettings):
     """Configuración centralizada de la aplicación."""
+
     @property
     def db_url(self) -> str:
-    # 1️⃣ usa Neon en Vercel
-        import os
         vercel_db = os.getenv("POSTGRES_URL")
-
         if vercel_db:
+            if vercel_db.startswith("postgresql://"):
+                return vercel_db.replace("postgresql://", "postgresql+psycopg://", 1)
             return vercel_db
-
-    # 2️⃣ si no existe → usa local
         return self.database_url
+
     model_config = SettingsConfigDict(env_file=".env", env_prefix="APP_", extra="ignore")
 
     env: str = Field(default="development")
@@ -43,11 +44,6 @@ class Settings(BaseSettings):
 
     @property
     def is_production(self) -> bool:
-        import os
         return self.env.lower() == "production"
-
-    
-        
-
 
 settings = Settings()

@@ -13,7 +13,7 @@ services:
         value: Universidad Digital API
       - key: APP_API_VERSION
         value: 1.0.0
-      - key: APP_DATABASE_URL
+      - key: POSTGRES_URL
         fromDatabase:
           name: universidad-digital-db
           property: connectionString
