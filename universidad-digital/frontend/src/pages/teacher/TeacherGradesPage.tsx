@@ -26,6 +26,13 @@ const updateSchema = z.object({
 type CreateForm = z.infer<typeof createSchema>;
 type UpdateForm = z.infer<typeof updateSchema>;
 
+function truncateLabel(text: string, maxLength = 46) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return `${text.slice(0, maxLength - 1)}…`;
+}
+
 export function TeacherGradesPage() {
   const [alert, setAlert] = useState<{
     message: string;
@@ -44,7 +51,9 @@ export function TeacherGradesPage() {
   const enrollmentOptions =
     enrollments?.map((enrollment) => ({
       value: String(enrollment.id),
-      label: `${enrollment.subject_name ?? "Materia"} - ${enrollment.user_name ?? "Estudiante"} (#${enrollment.id})`,
+      label: truncateLabel(
+        `${enrollment.subject_name ?? "Materia"} · ${enrollment.user_name ?? "Estudiante"}`,
+      ),
     })) ?? [];
 
   const handleCreate = async (values: CreateForm) => {

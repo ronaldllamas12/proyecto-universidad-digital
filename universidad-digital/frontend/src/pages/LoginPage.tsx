@@ -44,7 +44,9 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
-      {error ? <Alert message={error} /> : null}
+      <div className="login-alert-slot">
+        {error ? <Alert message={error} /> : null}
+      </div>
       <form onSubmit={handleSubmit(onSubmit)} className="grid">
         <Input
           label="Correo electrónico"

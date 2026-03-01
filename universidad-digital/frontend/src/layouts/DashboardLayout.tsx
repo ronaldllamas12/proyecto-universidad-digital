@@ -1,7 +1,6 @@
 import { type ReactNode, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { Button } from "../components/Button";
 
 const MenuIcon = () => (
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -83,6 +82,16 @@ const GradeIcon = () => (
   </svg>
 );
 
+const LogoutIcon = () => (
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M17 16l4-4m0 0l-4-4m4 4H9m4 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+    />
+  </svg>
+);
+
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const roles = user?.roles ?? [];
@@ -119,9 +128,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <span className="dashboard-header-bar__user-name">
             Hola, {user?.full_name ?? "Usuario"}
           </span>
-          <Button variant="secondary" onClick={() => void logout()}>
-            Cerrar sesión
-          </Button>
         </div>
       </header>
 
@@ -271,6 +277,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               </li>
             </>
           )}
+          <li className="dashboard-sidebar__logout-item">
+            <button
+              type="button"
+              className="dashboard-sidebar__link dashboard-sidebar__logout"
+              onClick={() => void logout()}
+              aria-label="Cerrar sesión"
+              title="Cerrar sesión"
+            >
+              <LogoutIcon />
+            </button>
+          </li>
         </ul>
       </nav>
 

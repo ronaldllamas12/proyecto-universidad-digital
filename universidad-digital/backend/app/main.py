@@ -42,7 +42,11 @@ if settings.is_production:
         raise RuntimeError("APP_CORS_ORIGINS es obligatorio en producción.")
     settings.cookie_secure = True
 
-allowed_origins = settings.cors_origins or ["http://localhost:3000"]
+allowed_origins = settings.cors_origins or [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
