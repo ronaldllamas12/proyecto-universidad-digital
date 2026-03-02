@@ -6,6 +6,7 @@ import { enrollmentsService } from "../../services/enrollmentsService";
 import { useFetch } from "../../hooks/useFetch";
 import type { GradeResponse } from "../../api/grades";
 import { Select } from "../../components/Select";
+import type { EnrollmentResponse } from "../../api/enrollments";
 
 export function TeacherGradesFilters() {
   const [subjectFilter, setSubjectFilter] = useState("");
@@ -14,12 +15,14 @@ export function TeacherGradesFilters() {
   const { data: enrollments } = useFetch(enrollmentsService.list, []);
 
   const enrollmentById = useMemo(() => {
-    const map = new Map<number, (typeof enrollments)[number]>();
-    (enrollments ?? []).forEach((enrollment) => {
-      map.set(enrollment.id, enrollment);
-    });
-    return map;
-  }, [enrollments]);
+  const map = new Map<number, EnrollmentResponse>();
+
+  (enrollments ?? []).forEach((enrollment) => {
+    map.set(enrollment.id, enrollment);
+  });
+
+  return map;
+}, [enrollments]);
 
   const subjectOptions = useMemo(() => {
     const map = new Map<number, string>();
