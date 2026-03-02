@@ -21,10 +21,26 @@ const METRIC_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#3b82f6", "#8b5cf6"];
 function buildChartData(metrics: AdminMetrics) {
   return [
     { name: "Usuarios", value: metrics.total_users, color: METRIC_COLORS[0] },
-    { name: "Estudiantes", value: metrics.total_students, color: METRIC_COLORS[1] },
-    { name: "Docentes", value: metrics.total_teachers, color: METRIC_COLORS[2] },
-    { name: "Materias", value: metrics.total_subjects, color: METRIC_COLORS[3] },
-    { name: "Periodos", value: metrics.active_periods, color: METRIC_COLORS[4] },
+    {
+      name: "Estudiantes",
+      value: metrics.total_students,
+      color: METRIC_COLORS[1],
+    },
+    {
+      name: "Docentes",
+      value: metrics.total_teachers,
+      color: METRIC_COLORS[2],
+    },
+    {
+      name: "Materias",
+      value: metrics.total_subjects,
+      color: METRIC_COLORS[3],
+    },
+    {
+      name: "Periodos",
+      value: metrics.active_periods,
+      color: METRIC_COLORS[4],
+    },
   ];
 }
 
@@ -60,7 +76,11 @@ export function AdminDashboard() {
   }
 
   const barData = buildChartData(metrics);
-  const pieData = barData.map(({ name, value, color }) => ({ name, value, color }));
+  const pieData = barData.map(({ name, value, color }) => ({
+    name,
+    value,
+    color,
+  }));
 
   return (
     <div className="dashboard-page">
@@ -70,60 +90,94 @@ export function AdminDashboard() {
       </header>
 
       <section className="metrics-grid" aria-label="Métricas principales">
-        <NavLink to="/admin/users/list" className="metric-card metric-card--link">
-          <div className="metric-card__icon metric-card__icon--primary" aria-hidden />
+        <NavLink
+          to="/admin/users/list"
+          className="metric-card metric-card--link"
+        >
+          <div
+            className="metric-card__icon metric-card__icon--primary"
+            aria-hidden
+          />
           <span>Usuarios</span>
           <strong>{metrics.total_users}</strong>
         </NavLink>
 
         <NavLink
-          to="/admin/users/list?role=student&active=true" className="metric-card metric-card--link">
-          <div className="metric-card__icon metric-card__icon--success" aria-hidden />
+          to="/admin/users/list?role=student&active=true"
+          className="metric-card metric-card--link"
+        >
+          <div
+            className="metric-card__icon metric-card__icon--success"
+            aria-hidden
+          />
           <span>Estudiantes activos</span>
           <strong>{metrics.total_students}</strong>
         </NavLink>
-        
+
         <NavLink
           to="/admin/users/list?role=teacher&active=true"
           className="metric-card metric-card--link"
         >
-          <div className="metric-card__icon metric-card__icon--warning" aria-hidden />
+          <div
+            className="metric-card__icon metric-card__icon--warning"
+            aria-hidden
+          />
           <span>Docentes activos</span>
           <strong>{metrics.total_teachers}</strong>
         </NavLink>
 
-        <NavLink to="/admin/subject/Filter" className="metric-card metric-card--link">
-          <div className="metric-card__icon metric-card__icon--info" aria-hidden />
+        <NavLink
+          to="/admin/subject/Filter"
+          className="metric-card metric-card--link"
+        >
+          <div
+            className="metric-card__icon metric-card__icon--info"
+            aria-hidden
+          />
           <span>Materias</span>
           <strong>{metrics.total_subjects}</strong>
         </NavLink>
-        <NavLink to="/admin/periods/Filter" className="metric-card metric-card--link">
-            <div className="metric-card__icon metric-card__icon--primary" aria-hidden />
-            <span>Periodos activos</span>
-            <strong>{metrics.active_periods}</strong>
+        <NavLink
+          to="/admin/periods/Filter?active=true"
+          className="metric-card metric-card--link"
+        >
+          <div
+            className="metric-card__icon metric-card__icon--primary"
+            aria-hidden
+          />
+          <span>Periodos activos</span>
+          <strong>{metrics.active_periods}</strong>
         </NavLink>
-        
-        <NavLink to="/admin/enrollments/Filter" className="metric-card metric-card--link">
-          <div className="metric-card__icon metric-card__icon--primary" aria-hidden />
+
+        <NavLink
+          to="/admin/enrollments/Filter?active=true"
+          className="metric-card metric-card--link"
+        >
+          <div
+            className="metric-card__icon metric-card__icon--primary"
+            aria-hidden
+          />
           <span>Inscripciones</span>
           <strong>{metrics.total_enrollments}</strong>
         </NavLink>
-        
       </section>
 
       <section className="charts-row" aria-label="Gráficas del dashboard">
         <article className="chart-card chart-card--full">
           <h3 className="chart-card__title">Distribución por categoría</h3>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={barData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <BarChart
+              data={barData}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
               <XAxis
-  dataKey="name"
-  interval={0}
-  angle={-25}
-  textAnchor="end"
-  height={90}
-  tick={{ fontSize: 11 }}
-/>
+                dataKey="name"
+                interval={0}
+                angle={-25}
+                textAnchor="end"
+                height={90}
+                tick={{ fontSize: 11 }}
+              />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
                 contentStyle={{
@@ -150,7 +204,6 @@ export function AdminDashboard() {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-
                 label={({ name, value }) => `${name}: ${value}`}
               >
                 {pieData.map((entry, index) => (
@@ -161,7 +214,6 @@ export function AdminDashboard() {
                 contentStyle={{
                   borderRadius: "8px",
                   border: "1px solid var(--border)",
-                  
                 }}
               />
               <Legend />

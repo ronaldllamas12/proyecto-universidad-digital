@@ -6,6 +6,7 @@ import { periodsService } from "../../services/periodsService";
 import { useFetch } from "../../hooks/useFetch";
 import { getErrorMessage } from "../../utils/apiError";
 import type { PeriodResponse } from "../../api/periods";
+import { useSearchParams } from "react-router-dom";
 
 export function PeriodsFilters() {
   const [alert, setAlert] = useState<{
@@ -18,6 +19,28 @@ export function PeriodsFilters() {
     isLoading,
     reload,
   } = useFetch(periodsService.list, []);
+  const [searchParams] = useSearchParams();
+  const activeFilter = searchParams.get("active");
+
+  const filteredPeriods = (periods ?? []).filter((period) => {
+    if (activeFilter === "true") {
+      return period.is_active === true;
+    }
+    if (activeFilter === "false") {
+      return period.is_active === false;
+    }
+    return true;
+  });
+
+  const getTitle = () => {
+    if (activeFilter === "true") {
+      return "Listado de periodos activos";
+    }
+    if (activeFilter === "false") {
+      return "Listado de periodos inactivos";
+    }
+    return "Listado de periodos";
+  };
 
   const handleDeactivate = async (id: number) => {
     try {
@@ -40,7 +63,7 @@ export function PeriodsFilters() {
   return (
     <>
       <div className="card" style={{ marginTop: 16 }}>
-        <h2>Listado de periodos</h2>
+        <h2>{getTitle()}</h2>
         {alert ? (
           <Alert message={alert.message} variant={alert.variant} />
         ) : null}
@@ -49,8 +72,8 @@ export function PeriodsFilters() {
           <p>Cargando...</p>
         ) : (
           <Table<PeriodResponse>
-            caption="Listado de periodos"
-            data={periods ?? []}
+            caption={getTitle()}
+            data={filteredPeriods}
             columns={[
               { header: "ID", render: (row) => row.id },
               { header: "Código", render: (row) => row.code },
