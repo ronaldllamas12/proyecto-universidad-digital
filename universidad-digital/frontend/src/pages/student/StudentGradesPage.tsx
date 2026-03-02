@@ -5,7 +5,7 @@ import { useGrades } from "../../hooks/useGrades";
 import { useEnrollments } from "../../hooks/useEnrollments";
 import type { GradeResponse } from "../../api/grades";
 import { Select } from "../../components/Select";
-import type { EnrollmentResponse } from "@/types/enrollment";
+import type { EnrollmentResponse } from "../../api/enrollments";
 
 export function StudentGradesPage() {
   const [subjectFilter, setSubjectFilter] = useState("");
