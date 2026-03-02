@@ -47,7 +47,7 @@ allowed_origins = settings.cors_origins or [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://proyecto-universidad-digital.vercel.app",
-    "https://universidad-digital-frontend.onrender.com",
+    "https://universidad-digital.onrender.com",
 ]
 app.add_middleware(
     CORSMiddleware,
