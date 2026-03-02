@@ -7,6 +7,7 @@ import { Button } from "../../components/Button";
 import { getErrorMessage } from "../../utils/apiError";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Select } from "../../components/Select";
 
 export function SubjectsListFilter() {
   const [alert, setAlert] = useState<{
@@ -18,6 +19,7 @@ export function SubjectsListFilter() {
 
   const teacherFilter = searchParams.get("teacher");
   const activeFilter = searchParams.get("active");
+  const [subjectFilter, setSubjectFilter] = useState("");
 
   const {
     data: subjects,
@@ -43,6 +45,9 @@ export function SubjectsListFilter() {
 
   // 🔎 FILTRO DINÁMICO
   const filteredSubjects = (subjects ?? []).filter((subject) => {
+    const matchesSubject =
+      subjectFilter === "" || String(subject.id) === subjectFilter;
+
     const matchesTeacher =
       teacherFilter === "assigned"
         ? !!subject.teacher_full_name
@@ -57,8 +62,15 @@ export function SubjectsListFilter() {
           ? subject.is_active === false
           : true;
 
-    return matchesTeacher && matchesActive;
+    return matchesSubject && matchesTeacher && matchesActive;
   });
+
+  const subjectOptions = [
+    { value: "", label: "Todas las materias" },
+    ...(subjects ?? [])
+      .map((subject) => ({ value: String(subject.id), label: subject.name }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+  ];
 
   // 🏷️ TÍTULO DINÁMICO
   const getTitle = () => {
@@ -80,6 +92,17 @@ export function SubjectsListFilter() {
   return (
     <div className="card">
       <h2>{getTitle()}</h2>
+      <details className="filters-mobile" open>
+        <summary>Filtros</summary>
+        <div className="grid filters-block">
+          <Select
+            label="Filtrar por materia"
+            options={subjectOptions}
+            value={subjectFilter}
+            onChange={(event) => setSubjectFilter(event.target.value)}
+          />
+        </div>
+      </details>
 
       {alert && <Alert message={alert.message} variant={alert.variant} />}
       {error && <Alert message={error} />}

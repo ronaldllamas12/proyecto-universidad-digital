@@ -7,6 +7,7 @@ import { useFetch } from "../../hooks/useFetch";
 import { getErrorMessage } from "../../utils/apiError";
 import type { PeriodResponse } from "../../api/periods";
 import { useSearchParams } from "react-router-dom";
+import { Select } from "../../components/Select";
 
 export function PeriodsFilters() {
   const [alert, setAlert] = useState<{
@@ -20,7 +21,9 @@ export function PeriodsFilters() {
     reload,
   } = useFetch(periodsService.list, []);
   const [searchParams] = useSearchParams();
-  const activeFilter = searchParams.get("active");
+  const [activeFilter, setActiveFilter] = useState(
+    searchParams.get("active") ?? "",
+  );
 
   const filteredPeriods = (periods ?? []).filter((period) => {
     if (activeFilter === "true") {
@@ -64,6 +67,21 @@ export function PeriodsFilters() {
     <>
       <div className="card" style={{ marginTop: 16 }}>
         <h2>{getTitle()}</h2>
+        <details className="filters-mobile" open>
+          <summary>Filtros</summary>
+          <div className="grid filters-block">
+            <Select
+              label="Filtrar por estado"
+              options={[
+                { value: "", label: "Todos" },
+                { value: "true", label: "Activos" },
+                { value: "false", label: "Inactivos" },
+              ]}
+              value={activeFilter}
+              onChange={(event) => setActiveFilter(event.target.value)}
+            />
+          </div>
+        </details>
         {alert ? (
           <Alert message={alert.message} variant={alert.variant} />
         ) : null}

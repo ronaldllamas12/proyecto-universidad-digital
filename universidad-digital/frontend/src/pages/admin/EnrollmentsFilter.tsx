@@ -8,6 +8,7 @@ import { useSearchParams } from "react-router-dom";
 import { useFetch } from "../../hooks/useFetch";
 import { getErrorMessage } from "../../utils/apiError";
 import type { EnrollmentResponse } from "../../api/enrollments";
+import { Select } from "../../components/Select";
 
 export function EnrollmentsFilter() {
   const [alert, setAlert] = useState<{
@@ -21,7 +22,9 @@ export function EnrollmentsFilter() {
     reload,
   } = useFetch(enrollmentsService.list, []);
   const [searchParams] = useSearchParams();
-  const activeFilter = searchParams.get("active");
+  const [activeFilter, setActiveFilter] = useState(
+    searchParams.get("active") ?? "",
+  );
   const teacherFilter = searchParams.get("teacher");
 
   const filteredEnrollments = (enrollments ?? []).filter((enrollment) => {
@@ -99,6 +102,21 @@ export function EnrollmentsFilter() {
     <>
       <div className="card" style={{ marginTop: 16 }}>
         <h2>{getTitle()}</h2>
+        <details className="filters-mobile" open>
+          <summary>Filtros</summary>
+          <div className="grid filters-block">
+            <Select
+              label="Filtrar por estado"
+              options={[
+                { value: "", label: "Todas" },
+                { value: "true", label: "Activas" },
+                { value: "false", label: "Inactivas" },
+              ]}
+              value={activeFilter}
+              onChange={(event) => setActiveFilter(event.target.value)}
+            />
+          </div>
+        </details>
         {alert ? (
           <Alert message={alert.message} variant={alert.variant} />
         ) : null}
