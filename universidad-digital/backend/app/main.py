@@ -46,6 +46,7 @@ allowed_origins = settings.cors_origins or [
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://universidad-digital.onrender.com"
 ]
 app.add_middleware(
     CORSMiddleware,
