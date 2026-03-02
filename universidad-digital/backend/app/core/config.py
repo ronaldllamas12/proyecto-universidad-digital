@@ -31,8 +31,8 @@ class Settings(BaseSettings):
     jwt_expiration_minutes: int = 60
 
     cookie_name: str = "access_token"
-    cookie_secure: bool = False
-    cookie_samesite: str = "lax"
+    cookie_secure: bool = True if env == "production" else False
+    cookie_samesite: str = "none" if env == "production" else "lax"
 
     cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=list)
     auto_create_tables: bool = True
