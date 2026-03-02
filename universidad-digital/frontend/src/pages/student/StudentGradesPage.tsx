@@ -13,12 +13,14 @@ export function StudentGradesPage() {
   const { data: enrollments } = useEnrollments();
 
   const enrollmentById = useMemo(() => {
-    const map = new Map<number, (typeof enrollments)[number]>();
-    (enrollments ?? []).forEach((enrollment) => {
-      map.set(enrollment.id, enrollment);
-    });
-    return map;
-  }, [enrollments]);
+  const map = new Map<number, EnrollmentResponse>();
+
+  (enrollments ?? []).forEach((enrollment) => {
+    map.set(enrollment.id, enrollment);
+  });
+
+  return map;
+}, [enrollments]);
 
   const subjectOptions = useMemo(() => {
     const map = new Map<number, string>();
