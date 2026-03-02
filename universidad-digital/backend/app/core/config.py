@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic_settings import NoDecode
 from pydantic import Field, field_validator
@@ -32,7 +32,9 @@ class Settings(BaseSettings):
 
     cookie_name: str = "access_token"
     cookie_secure: bool = True if env == "production" else False
-    cookie_samesite: str = "none" if env == "production" else "lax"
+    cookie_samesite: Literal["lax", "strict", "none"] = (
+        "none" if env == "production" else "lax"
+    )
 
     cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=list)
     auto_create_tables: bool = True
@@ -60,6 +62,15 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in raw_value.split(",") if origin.strip()]
 
         raise ValueError("APP_CORS_ORIGINS tiene un formato inválido.")
+
+    @field_validator("cookie_samesite", mode="before")
+    @classmethod
+    def validate_cookie_samesite(cls, value: Any) -> Literal["lax", "strict", "none"]:
+        normalized = str(value).strip().lower()
+        allowed = {"lax", "strict", "none"}
+        if normalized not in allowed:
+            raise ValueError("APP_COOKIE_SAMESITE debe ser: lax, strict o none.")
+        return normalized  # type: ignore[return-value]
 
     @property
     def db_url(self) -> str:

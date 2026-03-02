@@ -23,6 +23,37 @@ describe("Tareas - resiliencia y fallos reales", () => {
     cy.url().should("include", "/500");
   });
 
+  it("backend lento al crear tarea: mantiene consistencia y confirma respuesta", () => {
+    cy.mockTaskApi({ initialTasks: [] });
+    cy.intercept("POST", `${apiUrl}/tasks`, (request) => {
+      request.reply({
+        statusCode: 201,
+        delay: 2500,
+        body: {
+          id: "slow-create-1",
+          title: String(request.body?.title ?? ""),
+          completed: false,
+        },
+      });
+    }).as("createTaskSlow");
+
+    tasksPage.visit();
+    tasksPage.fillNewTask("Tarea backend lento");
+    tasksPage.submitNewTask();
+
+    cy.wait("@createTaskSlow").then(({ response, duration }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(response?.body).to.include({
+        title: "Tarea backend lento",
+        completed: false,
+      });
+      expect(duration ?? 0).to.be.greaterThan(2400);
+      expect(duration ?? 0).to.be.lessThan(6000);
+    });
+
+    tasksPage.assertTaskVisible("Tarea backend lento");
+  });
+
   it("backend lento: respeta espera inteligente y muestra lista cargada", () => {
     cy.mockTaskApi({
       initialTasks: [{ id: "slow-1", title: "Carga lenta", completed: false }],
@@ -46,6 +77,45 @@ describe("Tareas - resiliencia y fallos reales", () => {
     cy.get('[role="alert"]').should(
       "contain.text",
       "No se pudo conectar con el servidor",
+    );
+  });
+
+  it("pérdida de conexión al crear tarea", () => {
+    cy.mockTaskApi({ initialTasks: [] });
+    cy.intercept("POST", `${apiUrl}/tasks`, { forceNetworkError: true }).as(
+      "createTaskNetworkError",
+    );
+
+    tasksPage.visit();
+    tasksPage.fillNewTask("Tarea sin conexión");
+    tasksPage.submitNewTask();
+
+    cy.wait("@createTaskNetworkError").then(({ error }) => {
+      expect(error).to.exist;
+    });
+    cy.get('[role="alert"]').should(
+      "contain.text",
+      "No se pudo conectar con el servidor",
+    );
+  });
+
+  it("validación inconsistente (422) expone error serializado del backend", () => {
+    cy.mockTaskApi({ initialTasks: [] });
+    cy.intercept("POST", `${apiUrl}/tasks`, {
+      statusCode: 422,
+      body: {
+        detail: [{ msg: "El título excede la longitud permitida" }],
+      },
+    }).as("createTask422");
+
+    tasksPage.visit();
+    tasksPage.fillNewTask("T".repeat(300));
+    tasksPage.submitNewTask();
+
+    cy.wait("@createTask422").its("response.statusCode").should("eq", 422);
+    cy.get('[role="alert"]').should(
+      "contain.text",
+      "El título excede la longitud permitida",
     );
   });
 

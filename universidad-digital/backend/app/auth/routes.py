@@ -14,7 +14,6 @@ from app.core.config import settings
 from app.core.deps import get_current_user_dep, get_db
 from app.users.schemas import UserResponse
 
-
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -46,6 +45,7 @@ def logout_endpoint(
     Siempre devuelve una respuesta HTTP válida (204) aunque falle la revocación
     del token, para evitar estados inconsistentes y errores en el servidor.
     """
+
     token = request.cookies.get(settings.cookie_name)
     if token:
         try:

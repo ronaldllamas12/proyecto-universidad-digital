@@ -1111,6 +1111,7 @@ label {
   overflow-x: auto;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
@@ -1143,6 +1144,10 @@ label {
 }
 
 @media (max-width: 768px) {
+  .table {
+    min-width: 640px;
+  }
+
   .table {
     font-size: 0.74rem;
   }

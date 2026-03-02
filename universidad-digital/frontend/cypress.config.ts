@@ -1,8 +1,9 @@
 import { defineConfig } from "cypress";
 
 export default defineConfig({
+  reporter: "spec",
   e2e: {
-    baseUrl: process.env.CYPRESS_BASE_URL ?? "http://127.0.0.1:5173",
+    baseUrl: process.env.CYPRESS_BASE_URL ?? "http://127.0.0.1:3000",
     specPattern: "cypress/e2e/**/*.cy.ts",
     supportFile: "cypress/support/e2e.ts",
     setupNodeEvents(on) {
@@ -27,5 +28,6 @@ export default defineConfig({
     apiUrl: process.env.CYPRESS_API_URL ?? "http://127.0.0.1:8000",
     adminEmail: process.env.CYPRESS_ADMIN_EMAIL ?? "admin@universidad.com",
     adminPassword: process.env.CYPRESS_ADMIN_PASSWORD ?? "password123456",
+    runAgainstRealApi: process.env.CYPRESS_RUN_REAL_API === "true",
   },
 });

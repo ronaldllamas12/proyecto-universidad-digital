@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:test": "vite --port 3000 --strictPort",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest",
@@ -12,10 +13,13 @@
     "test:ui": "vitest --ui",
     "cy:clean": "node ./scripts/clean-cypress-artifacts.mjs",
     "cy:open": "cypress open",
-    "cy:run": "npm run cy:clean && cypress run",
-    "cy:run:chrome": "npm run cy:clean && cypress run --browser chrome",
-    "cy:run:edge": "npm run cy:clean && cypress run --browser edge",
-    "test:e2e": "npm run cy:clean && cypress run --browser electron"
+    "cy:run": "npm run cy:clean && start-server-and-test dev:test http://127.0.0.1:3000 \"cypress run\"",
+    "cy:run:chrome": "npm run cy:clean && start-server-and-test dev:test http://127.0.0.1:3000 \"cypress run --browser chrome\"",
+    "cy:run:edge": "npm run cy:clean && start-server-and-test dev:test http://127.0.0.1:3000 \"cypress run --browser edge\"",
+    "cy:run:edge:headed": "npm run cy:clean && start-server-and-test dev:test http://127.0.0.1:3000 \"cypress run --headed --browser edge\"",
+    "cy:run:integration": "npm run cy:clean && start-server-and-test dev:test http://127.0.0.1:3000 \"cypress run --env runAgainstRealApi=true\"",
+    "cy:run:integration:edge": "npm run cy:clean && start-server-and-test dev:test http://127.0.0.1:3000 \"cypress run --browser edge --env runAgainstRealApi=true\"",
+    "test:e2e": "npm run cy:clean && start-server-and-test dev:test http://127.0.0.1:3000 \"cypress run --browser electron\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -36,6 +40,7 @@
     "@vitejs/plugin-react": "^4.3.3",
     "cypress": "^14.2.0",
     "jsdom": "^25.0.1",
+    "start-server-and-test": "^2.1.2",
     "typescript": "^5.5.4",
     "vite": "^5.4.8",
     "vitest": "^2.1.9"
