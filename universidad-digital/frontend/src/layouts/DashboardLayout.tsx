@@ -120,7 +120,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               Universidad Digital
             </div>
             <div className="dashboard-header-bar__brand-sub">
-              Panel de control
+              Plataforma de gestión académica
             </div>
           </div>
         </div>
@@ -142,7 +142,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         aria-label="Menú principal"
       >
         <div className="dashboard-sidebar__header">
-          <div className="dashboard-sidebar__title">Navegación</div>
+          <div className="dashboard-sidebar__title"> Menu de Navegación</div>
         </div>
         <ul className="dashboard-sidebar__nav">
           {roles.includes("Administrador") && (
@@ -154,7 +154,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   end
                   onClick={closeSidebar}
                 >
-                  <ChartIcon /> Panel admin
+                  <ChartIcon /> Dashboard Admin
                 </NavLink>
               </li>
               <li>
@@ -163,7 +163,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   className="dashboard-sidebar__link"
                   onClick={closeSidebar}
                 >
-                  <UsersIcon /> Usuarios
+                  <UsersIcon /> Crear Usuarios
                 </NavLink>
               </li>
               <li>
@@ -172,7 +172,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   className="dashboard-sidebar__link"
                   onClick={closeSidebar}
                 >
-                  <BookIcon /> Materias
+                  <BookIcon />
+                  Crear Materias
                 </NavLink>
               </li>
               <li>
@@ -181,7 +182,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   className="dashboard-sidebar__link"
                   onClick={closeSidebar}
                 >
-                  <CalendarIcon /> Periodos
+                  <CalendarIcon /> Crear Periodos
                 </NavLink>
               </li>
               <li>
@@ -190,16 +191,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   className="dashboard-sidebar__link"
                   onClick={closeSidebar}
                 >
-                  <ClipboardIcon /> Inscripciones
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/admin/grades"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <GradeIcon /> Calificaciones
+                  <ClipboardIcon /> Crear Inscripciones
                 </NavLink>
               </li>
             </>
@@ -213,7 +205,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   end
                   onClick={closeSidebar}
                 >
-                  <ChartIcon /> Panel docente
+                  <ChartIcon /> Dashboard Docente
                 </NavLink>
               </li>
               <li>
@@ -222,7 +214,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   className="dashboard-sidebar__link"
                   onClick={closeSidebar}
                 >
-                  <GradeIcon /> Calificaciones
+                  <GradeIcon /> Registrar Calificaciones
                 </NavLink>
               </li>
               <li>
@@ -245,7 +237,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   end
                   onClick={closeSidebar}
                 >
-                  <ChartIcon /> Panel estudiante
+                  <ChartIcon /> Dashboard estudiante
                 </NavLink>
               </li>
               <li>
@@ -254,7 +246,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   className="dashboard-sidebar__link"
                   onClick={closeSidebar}
                 >
-                  <BookIcon /> Materias
+                  <BookIcon /> Ver Materias
                 </NavLink>
               </li>
               <li>
@@ -263,7 +255,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   className="dashboard-sidebar__link"
                   onClick={closeSidebar}
                 >
-                  <ClipboardIcon /> Inscripciones
+                  <ClipboardIcon /> Ver Inscripciones
                 </NavLink>
               </li>
               <li>
@@ -272,7 +264,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   className="dashboard-sidebar__link"
                   onClick={closeSidebar}
                 >
-                  <GradeIcon /> Calificaciones
+                  <GradeIcon /> Ver Calificaciones
                 </NavLink>
               </li>
             </>
@@ -285,7 +277,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               aria-label="Cerrar sesión"
               title="Cerrar sesión"
             >
-              <LogoutIcon />
+              <LogoutIcon /> Salir
             </button>
           </li>
         </ul>
