@@ -66,13 +66,11 @@ class Settings(BaseSettings):
         # Render/Vercel pueden definir estas variables automáticamente
         db = (
             os.getenv("DATABASE_URL")
-            or os.getenv("APP_DATABASE_URL")
             or self.database_url
         )
 
         if self.is_production and not (
-            os.getenv("DATABASE_URL") or os.getenv("APP_DATABASE_URL")
-        ):
+            os.getenv("DATABASE_URL") ):
             raise RuntimeError(
                 "DATABASE_URL (o APP_DATABASE_URL) es obligatorio en producción."
             )
