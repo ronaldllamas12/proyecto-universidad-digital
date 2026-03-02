@@ -160,6 +160,18 @@ export function AdminDashboard() {
           <span>Inscripciones</span>
           <strong>{metrics.total_enrollments}</strong>
         </NavLink>
+
+        <NavLink
+          to="/admin/enrollments/Filter?teacher=unassigned"
+          className="metric-card metric-card--link"
+        >
+          <div
+            className="metric-card__icon metric-card__icon--warning"
+            aria-hidden
+          />
+          <span>Inscripciones sin docente</span>
+          <strong>Ver</strong>
+        </NavLink>
       </section>
 
       <section className="charts-row" aria-label="Gráficas del dashboard">
