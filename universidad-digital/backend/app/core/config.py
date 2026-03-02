@@ -38,7 +38,6 @@ class Settings(BaseSettings):
         # Render/Vercel pueden definir estas variables automáticamente
         db = (
             os.getenv("DATABASE_URL")
-            or os.getenv("POSTGRES_URL")
             or self.database_url
         )
 
