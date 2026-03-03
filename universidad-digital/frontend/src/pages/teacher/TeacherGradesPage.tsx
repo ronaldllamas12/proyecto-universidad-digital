@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -38,6 +38,7 @@ export function TeacherGradesPage() {
     message: string;
     variant: "success" | "error";
   } | null>(null);
+  const [subjectFilter, setSubjectFilter] = useState("");
   const { reload } = useFetch(gradesService.list, []);
   const { data: enrollments } = useFetch(enrollmentsService.list, []);
 
@@ -48,13 +49,35 @@ export function TeacherGradesPage() {
     resolver: zodResolver(updateSchema),
   });
 
-  const enrollmentOptions =
-    enrollments?.map((enrollment) => ({
-      value: String(enrollment.id),
-      label: truncateLabel(
-        `${enrollment.subject_name ?? "Materia"} · ${enrollment.user_name ?? "Estudiante"}`,
-      ),
-    })) ?? [];
+  const subjectOptions = useMemo(() => {
+    const map = new Map<number, string>();
+    (enrollments ?? []).forEach((row) => {
+      map.set(row.subject_id, row.subject_name ?? `Materia #${row.subject_id}`);
+    });
+
+    return [
+      { value: "", label: "Selecciona una materia" },
+      ...Array.from(map.entries())
+        .sort((a, b) => a[1].localeCompare(b[1]))
+        .map(([id, name]) => ({ value: String(id), label: name })),
+    ];
+  }, [enrollments]);
+
+  const filteredEnrollments = useMemo(() => {
+    if (!subjectFilter) {
+      return [];
+    }
+
+    const subjectId = Number(subjectFilter);
+    return (enrollments ?? []).filter((row) => row.subject_id === subjectId);
+  }, [enrollments, subjectFilter]);
+
+  const enrollmentOptions = filteredEnrollments.map((enrollment) => ({
+    value: String(enrollment.id),
+    label: truncateLabel(
+      `${enrollment.user_name ?? "Estudiante"} · ${enrollment.period_name ?? "Periodo"}`,
+    ),
+  }));
 
   const handleCreate = async (values: CreateForm) => {
     try {
@@ -98,12 +121,27 @@ export function TeacherGradesPage() {
             className="grid"
           >
             <Select
-              label="Inscripción"
+              label="Materia"
+              options={subjectOptions}
+              value={subjectFilter}
+              onChange={(event) => {
+                setSubjectFilter(event.target.value);
+                createForm.setValue("enrollment_id", "");
+              }}
+            />
+            <Select
+              label="Estudiante inscrito"
               options={[
-                { value: "", label: "Selecciona una inscripción" },
+                {
+                  value: "",
+                  label: subjectFilter
+                    ? "Selecciona un estudiante inscrito"
+                    : "Primero selecciona una materia",
+                },
                 ...enrollmentOptions,
               ]}
               {...createForm.register("enrollment_id")}
+              disabled={!subjectFilter}
               error={createForm.formState.errors.enrollment_id?.message}
             />
             <Input
