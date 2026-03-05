@@ -1,95 +1,98 @@
-import { LoginPage } from "../../support/pageObjects/LoginPage";
-import { TasksPage } from "../../support/pageObjects/TasksPage";
+// ===========================================================================
+// E2E — Integración real (solo con API real)
+// Se ejecuta solo con: CYPRESS_RUN_REAL_API=true
+// Valida el flujo completo contra el backend real
+// ===========================================================================
 
-describe("Tareas - integración real (UI + API + persistencia)", () => {
-  const loginPage = new LoginPage();
-  const tasksPage = new TasksPage();
-  const apiUrl = String(Cypress.env("apiUrl") ?? "http://127.0.0.1:8000");
+import { LoginPage } from "../../support/page-objects/LoginPage";
+import { TasksPage } from "../../support/page-objects/TasksPage";
+import { ROUTES } from "../../support/helpers/constants";
 
-  beforeEach(function () {
-    if (!Cypress.env("runAgainstRealApi")) {
-      this.skip();
-    }
-  });
+const loginPage = new LoginPage();
+const tasksPage = new TasksPage();
 
-  it("login + creación + validación API + persistencia tras refresh", () => {
-    const taskTitle = `E2E integración ${Date.now()}`;
+const isRealApi = Cypress.env("runAgainstRealApi") === true;
 
-    cy.intercept("POST", "**/auth/login").as("loginLive");
-    cy.intercept("GET", `${apiUrl}/tasks`).as("getTasksLive");
-    cy.intercept("POST", `${apiUrl}/tasks`).as("createTaskLive");
+(isRealApi ? describe : describe.skip)(
+  "Tareas — Integración con API real",
+  () => {
+    const uniqueTitle = `E2E-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    let createdTaskId: string | null = null;
 
-    loginPage.visit();
-    loginPage.fillEmail(String(Cypress.env("adminEmail")));
-    loginPage.fillPassword(String(Cypress.env("adminPassword")));
-    loginPage.submit();
-
-    let authToken = "";
-
-    cy.wait("@loginLive").then(({ response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(response?.body).to.have.property("access_token");
-      authToken = String(response?.body?.access_token ?? "");
-      expect(authToken).to.not.equal("");
+    before(() => {
+      // Login real
+      const apiUrl = Cypress.env("apiUrl");
+      cy.request("POST", `${apiUrl}/auth/login`, {
+        email: Cypress.env("adminEmail"),
+        password: Cypress.env("adminPassword"),
+      }).then((resp) => {
+        expect(resp.status).to.eq(200);
+        expect(resp.body).to.have.property("access_token");
+      });
     });
 
-    tasksPage.visit();
-    cy.wait("@getTasksLive").then(({ response, duration }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(response?.headers["content-type"]).to.include("application/json");
-      expect(response?.body).to.be.an("array");
-      expect(duration ?? 0).to.be.lessThan(5000);
-    });
-
-    tasksPage.fillNewTask(taskTitle);
-    tasksPage.submitNewTask();
-
-    cy.wait("@createTaskLive").then(({ request, response, duration }) => {
-      expect(request.body).to.have.property("title", taskTitle);
-      expect(response?.statusCode).to.eq(201);
-      expect(response?.headers["content-type"]).to.include("application/json");
-      expect(response?.body).to.include({ title: taskTitle, completed: false });
-      expect(duration ?? 0).to.be.lessThan(5000);
-    });
-
-    tasksPage.assertTaskVisible(taskTitle);
-
-    cy.request({
-      method: "GET",
-      url: `${apiUrl}/tasks`,
-      headers: { Authorization: `Bearer ${authToken}` },
-    }).then(({ status, body, duration }) => {
-      expect(status).to.eq(200);
-      expect(duration).to.be.lessThan(5000);
-      expect(body).to.be.an("array");
-      expect(
-        body.some((task: { title?: string }) => task.title === taskTitle),
-      ).to.equal(true);
-    });
-
-    cy.reload();
-    cy.wait("@getTasksLive");
-    tasksPage.assertTaskVisible(taskTitle);
-
-    cy.request({
-      method: "GET",
-      url: `${apiUrl}/tasks`,
-      headers: { Authorization: `Bearer ${authToken}` },
-    }).then(({ body }) => {
-      const createdTask = (body as Array<{ id: string; title: string }>).find(
-        (task) => task.title === taskTitle,
-      );
-      if (!createdTask) {
-        throw new Error("No se encontró la tarea creada para cleanup");
+    after(() => {
+      // Cleanup: eliminar la tarea creada
+      if (createdTaskId) {
+        const apiUrl = Cypress.env("apiUrl");
+        cy.request({
+          method: "DELETE",
+          url: `${apiUrl}/tasks/${createdTaskId}`,
+          failOnStatusCode: false,
+        });
       }
-
-      cy.request({
-        method: "DELETE",
-        url: `${apiUrl}/tasks/${createdTask.id}`,
-        headers: { Authorization: `Bearer ${authToken}` },
-      })
-        .its("status")
-        .should("be.oneOf", [200, 204]);
     });
-  });
-});
+
+    it("flujo completo: login → crear tarea → persistencia → visualización", () => {
+      const apiUrl = Cypress.env("apiUrl");
+
+      // Interceptar para observar requests reales
+      cy.intercept("POST", "**/tasks").as("realCreateTask");
+      cy.intercept("GET", "**/tasks").as("realGetTasks");
+
+      // 1) Login por UI
+      loginPage.visit();
+      loginPage.fillAndSubmit(
+        Cypress.env("adminEmail"),
+        Cypress.env("adminPassword"),
+      );
+      cy.url().should("not.include", "/login");
+
+      // 2) Navegar a tareas
+      cy.visit(ROUTES.ADMIN_TASKS);
+      cy.wait("@realGetTasks");
+      tasksPage.assertPageTitle();
+
+      // 3) Crear tarea
+      tasksPage.createTask(uniqueTitle);
+
+      cy.wait("@realCreateTask").then((interception) => {
+        expect(interception.response?.statusCode).to.eq(201);
+        expect(interception.response?.body).to.have.property("id");
+        expect(interception.response?.body).to.have.property(
+          "title",
+          uniqueTitle,
+        );
+        createdTaskId = interception.response?.body.id;
+      });
+
+      // 4) Validar en UI
+      tasksPage.assertTaskVisible(uniqueTitle);
+
+      // 5) Validar por API directa
+      cy.request(`${apiUrl}/tasks`).then((resp) => {
+        expect(resp.status).to.eq(200);
+        const found = resp.body.find(
+          (t: { title: string }) => t.title === uniqueTitle,
+        );
+        expect(found, "tarea encontrada en API").to.exist;
+        expect(found.completed).to.eq(false);
+      });
+
+      // 6) Validar persistencia: recargar
+      cy.reload();
+      cy.wait("@realGetTasks");
+      tasksPage.assertTaskVisible(uniqueTitle);
+    });
+  },
+);

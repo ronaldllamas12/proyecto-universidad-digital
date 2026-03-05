@@ -1,0 +1,22 @@
+{
+  "unauthorized": {
+    "detail": "No autenticado"
+  },
+  "invalidCredentials": {
+    "detail": "Credenciales inválidas"
+  },
+  "serverError": {
+    "detail": "Error interno del servidor"
+  },
+  "validationError": {
+    "detail": [
+      { "msg": "El título excede la longitud permitida", "type": "value_error" }
+    ]
+  },
+  "notFound": {
+    "detail": "Recurso no encontrado"
+  },
+  "forbidden": {
+    "detail": "No tiene permisos para esta acción"
+  }
+}

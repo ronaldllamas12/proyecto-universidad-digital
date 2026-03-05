@@ -1,0 +1,10 @@
+{
+  "adminMetrics": {
+    "total_users": 42,
+    "total_students": 25,
+    "total_teachers": 10,
+    "total_subjects": 8,
+    "active_periods": 3,
+    "total_enrollments": 60
+  }
+}

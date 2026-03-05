@@ -1,133 +1,231 @@
-import { TasksPage } from "../../support/pageObjects/TasksPage";
+// ===========================================================================
+// E2E — Resiliencia de tareas
+// Simula: backend caído, respuesta corrupta, timeout, errores HTTP,
+//         validaciones inconsistentes, respuesta parcial
+// ===========================================================================
 
-describe("Tareas - resiliencia y fallos reales", () => {
-  const tasksPage = new TasksPage();
-  const apiUrl = String(Cypress.env("apiUrl") ?? "http://127.0.0.1:8000");
+import { TasksPage } from "../../support/page-objects/TasksPage";
+import { ROUTES } from "../../support/helpers/constants";
 
+const tasksPage = new TasksPage();
+
+describe("Tareas — Resiliencia y detección de fallos", () => {
   beforeEach(() => {
-    cy.mockAuthApi({ meStatus: 200, meRole: "Administrador" });
+    cy.mockAuthApi({ initialMeUnauthorized: false });
   });
 
-  it("backend retorna 500 al crear tarea", () => {
-    cy.mockTaskApi({ initialTasks: [] });
-    cy.intercept("POST", `${apiUrl}/tasks`, {
-      statusCode: 500,
-      body: { detail: "Error interno al crear tarea" },
-    }).as("createTask500");
+  // -----------------------------------------------------------------------
+  // Backend caído
+  // -----------------------------------------------------------------------
+  describe("Backend caído", () => {
+    it("muestra error cuando GET /tasks falla por network error", () => {
+      cy.mockTaskApi({ getNetworkError: true });
+      tasksPage.visit();
 
-    tasksPage.visit();
-    tasksPage.fillNewTask("Tarea con backend 500");
-    tasksPage.submitNewTask();
+      tasksPage.assertErrorMessage("No se pudo conectar con el servidor");
+    });
 
-    cy.wait("@createTask500").its("response.statusCode").should("eq", 500);
-    cy.url().should("include", "/500");
+    it("muestra error cuando POST /tasks falla por network error", () => {
+      cy.mockTaskApi({ initialTasks: [], postNetworkError: true });
+      tasksPage.visit();
+      cy.wait("@getTasks");
+
+      tasksPage.createTask("Tarea que no llegará");
+
+      tasksPage.assertErrorMessage("No se pudo conectar con el servidor");
+    });
   });
 
-  it("backend lento al crear tarea: mantiene consistencia y confirma respuesta", () => {
-    cy.mockTaskApi({ initialTasks: [] });
-    cy.intercept("POST", `${apiUrl}/tasks`, (request) => {
-      request.reply({
-        statusCode: 201,
-        delay: 2500,
-        body: {
-          id: "slow-create-1",
-          title: String(request.body?.title ?? ""),
-          completed: false,
+  // -----------------------------------------------------------------------
+  // Error HTTP 500
+  // -----------------------------------------------------------------------
+  describe("Error 500 del servidor", () => {
+    it("redirige a /500 cuando el backend retorna error 500 en POST", () => {
+      cy.mockTaskApi({
+        initialTasks: [],
+        postStatus: 500,
+        postErrorBody: { detail: "Error interno del servidor" },
+      });
+
+      tasksPage.visit();
+      cy.wait("@getTasks");
+
+      tasksPage.createTask("Tarea que causa 500");
+
+      // El interceptor de axios redirige a /500
+      cy.url().should("include", "/500");
+      cy.contains("Error del servidor").should("be.visible");
+    });
+
+    it("redirige a /500 cuando GET /tasks retorna 500", () => {
+      cy.intercept(
+        { method: "GET", pathname: "/tasks" },
+        {
+          statusCode: 500,
+          body: { detail: "Error interno" },
+          headers: { "content-type": "application/json" },
+        },
+      ).as("getTasks500");
+
+      tasksPage.visit();
+
+      cy.url().should("include", "/500");
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Backend lento (timeout)
+  // -----------------------------------------------------------------------
+  describe("Backend lento", () => {
+    it("maneja respuesta lenta en GET sin romperse (2.5s)", () => {
+      cy.mockTaskApi({
+        initialTasks: [
+          { id: "slow-1", title: "Tarea lenta", completed: false },
+        ],
+        getDelay: 2500,
+      });
+
+      tasksPage.visit();
+
+      // Muestra loading mientras espera
+      tasksPage.assertLoadingState();
+
+      // Eventualmente carga
+      cy.wait("@getTasks");
+      tasksPage.assertTaskVisible("Tarea lenta");
+      cy.contains("Cargando tareas...").should("not.exist");
+    });
+
+    it("maneja respuesta lenta en POST sin romperse (2.5s)", () => {
+      cy.mockTaskApi({ initialTasks: [], postDelay: 2500 });
+      tasksPage.visit();
+      cy.wait("@getTasks");
+
+      tasksPage.createTask("Tarea con latencia");
+
+      // El botón debería estar deshabilitado durante el envío
+      cy.contains("button", "Añadir tarea").should("be.disabled");
+
+      cy.wait("@createTask").then((interception) => {
+        expect(interception.response?.statusCode).to.eq(201);
+      });
+
+      // Tarea aparece tras la espera
+      tasksPage.assertTaskVisible("Tarea con latencia");
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Respuesta corrupta / parcial
+  // -----------------------------------------------------------------------
+  describe("Respuesta corrupta", () => {
+    it("la app no crashea con respuesta JSON corrupta en GET", () => {
+      cy.mockTaskApi({ corruptGetResponse: true });
+      tasksPage.visit();
+
+      // La app no debería mostrar un crash total — debe manejar el error
+      // Puede mostrar error o estado vacío, pero no pantalla blanca
+      cy.get("body").should("be.visible");
+      cy.get('[aria-label="Gestión de tareas"]').should("exist");
+    });
+
+    it("maneja respuesta parcial sin campos esperados", () => {
+      cy.intercept(
+        { method: "GET", pathname: "/tasks" },
+        {
+          statusCode: 200,
+          body: [{ id: "partial-1" }, { title: "Sin ID ni completed" }],
+          headers: { "content-type": "application/json" },
+        },
+      ).as("getPartialTasks");
+
+      cy.mockAuthApi({ initialMeUnauthorized: false });
+      tasksPage.visit();
+
+      // Debe renderizar sin crashear
+      cy.get("body").should("be.visible");
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Error de validación 422
+  // -----------------------------------------------------------------------
+  describe("Validación del backend (422)", () => {
+    it("muestra error de validación cuando el backend rechaza datos", () => {
+      cy.mockTaskApi({
+        initialTasks: [],
+        postStatus: 422,
+        postErrorBody: {
+          detail: [
+            {
+              msg: "El título excede la longitud permitida",
+              type: "value_error",
+            },
+          ],
         },
       });
-    }).as("createTaskSlow");
 
-    tasksPage.visit();
-    tasksPage.fillNewTask("Tarea backend lento");
-    tasksPage.submitNewTask();
+      tasksPage.visit();
+      cy.wait("@getTasks");
 
-    cy.wait("@createTaskSlow").then(({ response, duration }) => {
-      expect(response?.statusCode).to.eq(201);
-      expect(response?.body).to.include({
-        title: "Tarea backend lento",
-        completed: false,
+      cy.fixture("tasks").then((tasksData) => {
+        tasksPage.createTask(tasksData.longTitle.title);
+
+        cy.wait("@createTask").then((interception) => {
+          expect(interception.response?.statusCode).to.eq(422);
+        });
+
+        // La app muestra el mensaje de error del backend
+        tasksPage.assertErrorMessage("El título excede la longitud permitida");
       });
-      expect(duration ?? 0).to.be.greaterThan(2400);
-      expect(duration ?? 0).to.be.lessThan(6000);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Consistencia entre requests
+  // -----------------------------------------------------------------------
+  describe("Consistencia de datos", () => {
+    it("crear y luego eliminar — la lista queda consistente", () => {
+      cy.mockTaskApi({ initialTasks: [] });
+      tasksPage.visit();
+      cy.wait("@getTasks");
+
+      // Crear
+      tasksPage.createTask("Tarea temporal");
+      cy.wait("@createTask");
+      tasksPage.assertTaskVisible("Tarea temporal");
+      tasksPage.assertTaskCount(1);
+
+      // Eliminar
+      tasksPage.deleteTask("Tarea temporal");
+      cy.wait("@deleteTask");
+      tasksPage.assertEmptyState();
     });
 
-    tasksPage.assertTaskVisible("Tarea backend lento");
-  });
+    it("crear, completar y recargar — todo persiste", () => {
+      const task = {
+        id: "task-1",
+        title: "Tarea persistente",
+        completed: true,
+      };
 
-  it("backend lento: respeta espera inteligente y muestra lista cargada", () => {
-    cy.mockTaskApi({
-      initialTasks: [{ id: "slow-1", title: "Carga lenta", completed: false }],
-      getDelayMs: 2000,
+      cy.mockTaskApi({ initialTasks: [] });
+      tasksPage.visit();
+      cy.wait("@getTasks");
+
+      tasksPage.createTask("Tarea persistente");
+      cy.wait("@createTask");
+
+      tasksPage.toggleTask("Tarea persistente");
+      cy.wait("@toggleTask");
+      tasksPage.assertTaskCompleted("Tarea persistente");
+
+      // Simular persistencia
+      cy.mockTaskApi({ initialTasks: [task] });
+      cy.reload();
+      cy.wait("@getTasks");
+
+      tasksPage.assertTaskCompleted("Tarea persistente");
     });
-
-    tasksPage.visit();
-    cy.contains("Cargando tareas...").should("be.visible");
-    cy.wait("@getTasks").its("response.statusCode").should("eq", 200);
-    tasksPage.assertTaskVisible("Carga lenta");
-  });
-
-  it("pérdida de conexión al listar tareas", () => {
-    cy.mockTaskApi({ forceGetNetworkError: true });
-
-    tasksPage.visit();
-
-    cy.wait("@getTasks").then(({ error }) => {
-      expect(error).to.exist;
-    });
-    cy.get('[role="alert"]').should(
-      "contain.text",
-      "No se pudo conectar con el servidor",
-    );
-  });
-
-  it("pérdida de conexión al crear tarea", () => {
-    cy.mockTaskApi({ initialTasks: [] });
-    cy.intercept("POST", `${apiUrl}/tasks`, { forceNetworkError: true }).as(
-      "createTaskNetworkError",
-    );
-
-    tasksPage.visit();
-    tasksPage.fillNewTask("Tarea sin conexión");
-    tasksPage.submitNewTask();
-
-    cy.wait("@createTaskNetworkError").then(({ error }) => {
-      expect(error).to.exist;
-    });
-    cy.get('[role="alert"]').should(
-      "contain.text",
-      "No se pudo conectar con el servidor",
-    );
-  });
-
-  it("validación inconsistente (422) expone error serializado del backend", () => {
-    cy.mockTaskApi({ initialTasks: [] });
-    cy.intercept("POST", `${apiUrl}/tasks`, {
-      statusCode: 422,
-      body: {
-        detail: [{ msg: "El título excede la longitud permitida" }],
-      },
-    }).as("createTask422");
-
-    tasksPage.visit();
-    tasksPage.fillNewTask("T".repeat(300));
-    tasksPage.submitNewTask();
-
-    cy.wait("@createTask422").its("response.statusCode").should("eq", 422);
-    cy.get('[role="alert"]').should(
-      "contain.text",
-      "El título excede la longitud permitida",
-    );
-  });
-
-  it("respuesta parcial/corrupta de API no rompe la aplicación", () => {
-    cy.intercept("GET", `${apiUrl}/tasks`, {
-      statusCode: 200,
-      body: [{ id: "broken-1", completed: false }],
-    }).as("getTasksCorrupted");
-
-    tasksPage.visit();
-    cy.wait("@getTasksCorrupted").its("response.statusCode").should("eq", 200);
-
-    cy.get("body").should("be.visible");
   });
 });

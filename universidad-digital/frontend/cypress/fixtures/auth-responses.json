@@ -1,0 +1,30 @@
+{
+  "loginSuccess": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e2e-test-token",
+    "token_type": "bearer"
+  },
+  "adminMe": {
+    "id": 1,
+    "email": "admin@universidad.com",
+    "full_name": "Admin QA",
+    "is_active": true,
+    "created_at": "2025-01-01T00:00:00",
+    "roles": ["Administrador"]
+  },
+  "teacherMe": {
+    "id": 2,
+    "email": "docente@universidad.com",
+    "full_name": "Docente QA",
+    "is_active": true,
+    "created_at": "2025-01-15T00:00:00",
+    "roles": ["Docente"]
+  },
+  "studentMe": {
+    "id": 3,
+    "email": "estudiante@universidad.com",
+    "full_name": "Estudiante QA",
+    "is_active": true,
+    "created_at": "2025-02-01T00:00:00",
+    "roles": ["Estudiante"]
+  }
+}

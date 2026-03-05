@@ -9,9 +9,15 @@ export default defineConfig({
     setupFiles: ["./tests/setup/setupTests.ts"],
     css: false,
     coverage: {
-      reporter: ["text", "html"],
-      include: ["src/components/**/*.{ts,tsx}"]
-    }
-  }
+      provider: "v8",
+      reporter: ["text", "text-summary", "html", "lcov"],
+      include: ["src/components/**/*.{ts,tsx}"],
+      thresholds: {
+        lines: 85,
+        branches: 75,
+        functions: 80,
+        statements: 85,
+      },
+    },
+  },
 });
-

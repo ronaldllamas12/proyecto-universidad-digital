@@ -1,0 +1,406 @@
+name: Test Observability Metrics
+
+on:
+  schedule:
+    - cron: "0 9 * * 2"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  observability-metrics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run backend tests and collect timings
+        id: backend_metrics
+        shell: bash
+        run: |
+          set -o pipefail
+          start=$(date +%s)
+          (cd backend && python -m pytest -q --durations=20 2>&1 | tee ../backend-test.log)
+          exit_code=${PIPESTATUS[0]}
+          end=$(date +%s)
+          duration=$((end - start))
+
+          echo "backend_duration_seconds=$duration" >> "$GITHUB_OUTPUT"
+          echo "backend_exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+
+      - name: Run frontend tests and collect timings
+        id: frontend_metrics
+        shell: bash
+        run: |
+          set -o pipefail
+          start=$(date +%s)
+          (cd frontend && npx vitest run --coverage 2>&1 | tee ../frontend-test.log)
+          exit_code=${PIPESTATUS[0]}
+          end=$(date +%s)
+          duration=$((end - start))
+
+          echo "frontend_duration_seconds=$duration" >> "$GITHUB_OUTPUT"
+          echo "frontend_exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+
+      - name: Build observability report
+        shell: bash
+        run: |
+          python - << 'PY'
+          import datetime as dt
+          import json
+          import os
+          import re
+          import xml.etree.ElementTree as ET
+          from collections import defaultdict
+
+
+          def parse_pytest_runtime(path: str):
+              if not os.path.exists(path):
+                  return None
+              text = open(path, encoding="utf-8", errors="ignore").read()
+              matches = re.findall(r" in ([0-9]+(?:\.[0-9]+)?)s", text)
+              if not matches:
+                  return None
+              return float(matches[-1])
+
+
+          def parse_backend_coverage(path: str):
+              if not os.path.exists(path):
+                  return {}
+              tree = ET.parse(path)
+              root = tree.getroot()
+              package_data = defaultdict(lambda: {"valid": 0, "covered": 0})
+
+              for package in root.findall(".//package"):
+                  pkg_name = package.attrib.get("name", "")
+                  domain = pkg_name.split(".")[1] if pkg_name.startswith("app.") and len(pkg_name.split(".")) > 1 else pkg_name or "root"
+                  for cls in package.findall("./classes/class"):
+                      lines = cls.findall("./lines/line")
+                      for line in lines:
+                          package_data[domain]["valid"] += 1
+                          if int(line.attrib.get("hits", "0")) > 0:
+                              package_data[domain]["covered"] += 1
+
+              result = {}
+              for domain, values in package_data.items():
+                  if values["valid"] == 0:
+                      continue
+                  result[domain] = round((values["covered"] / values["valid"]) * 100, 2)
+              return dict(sorted(result.items()))
+
+
+          def parse_frontend_coverage(path: str):
+              if not os.path.exists(path):
+                  return {}
+              coverage = defaultdict(lambda: {"lf": 0, "lh": 0})
+              current_file = None
+
+              with open(path, encoding="utf-8", errors="ignore") as file_obj:
+                  for raw_line in file_obj:
+                      line = raw_line.strip()
+                      if line.startswith("SF:"):
+                          current_file = line[3:]
+                          continue
+                      if line.startswith("LF:") and current_file:
+                          coverage[current_file]["lf"] = int(line[3:])
+                          continue
+                      if line.startswith("LH:") and current_file:
+                          coverage[current_file]["lh"] = int(line[3:])
+
+              grouped = defaultdict(lambda: {"lf": 0, "lh": 0})
+              for file_path, values in coverage.items():
+                  normalized = file_path.replace("\\", "/")
+                  marker = "src/components/"
+                  if marker in normalized:
+                      rel = normalized.split(marker, 1)[1]
+                      domain = rel.split("/", 1)[0] if "/" in rel else "root"
+                  else:
+                      domain = "outside-components"
+
+                  grouped[domain]["lf"] += values["lf"]
+                  grouped[domain]["lh"] += values["lh"]
+
+              result = {}
+              for domain, values in grouped.items():
+                  if values["lf"] == 0:
+                      continue
+                  result[domain] = round((values["lh"] / values["lf"]) * 100, 2)
+              return dict(sorted(result.items()))
+
+
+          backend_duration_seconds = int(os.environ.get("BACKEND_DURATION_SECONDS", "0"))
+          frontend_duration_seconds = int(os.environ.get("FRONTEND_DURATION_SECONDS", "0"))
+          total_duration_seconds = backend_duration_seconds + frontend_duration_seconds
+
+          backend_pytest_runtime = parse_pytest_runtime("backend-test.log")
+          frontend_vitest_runtime = parse_pytest_runtime("frontend-test.log")
+
+          backend_domain_coverage = parse_backend_coverage("backend/coverage.xml")
+          frontend_domain_coverage = parse_frontend_coverage("frontend/coverage/lcov.info")
+
+          payload = {
+              "timestamp_utc": dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+              "commit_sha": os.environ.get("GITHUB_SHA", "unknown"),
+              "duration_seconds": {
+                  "backend_wall_time": backend_duration_seconds,
+                  "frontend_wall_time": frontend_duration_seconds,
+                  "total_wall_time": total_duration_seconds,
+              },
+              "reported_runtime_seconds": {
+                  "backend_pytest": backend_pytest_runtime,
+                  "frontend_vitest": frontend_vitest_runtime,
+              },
+              "coverage_percent_by_domain": {
+                  "backend_app_packages": backend_domain_coverage,
+                  "frontend_components_domains": frontend_domain_coverage,
+              },
+          }
+
+          with open("observability-metrics.json", "w", encoding="utf-8") as file_obj:
+              json.dump(payload, file_obj, indent=2)
+
+          backend_cov_rows = "\n".join(
+              f"| {domain} | {value}% |" for domain, value in backend_domain_coverage.items()
+          ) or "| n/a | n/a |"
+
+          frontend_cov_rows = "\n".join(
+              f"| {domain} | {value}% |" for domain, value in frontend_domain_coverage.items()
+          ) or "| n/a | n/a |"
+
+          report_lines = [
+              "# Test Observability Report",
+              "",
+              f"- Timestamp (UTC): {payload['timestamp_utc']}",
+              f"- Commit: {payload['commit_sha']}",
+              "",
+              "## Duration by suite",
+              "",
+              "| Suite | Wall time (s) | Runner reported time (s) |",
+              "| --- | ---: | ---: |",
+              f"| Backend (`pytest`) | {backend_duration_seconds} | {backend_pytest_runtime if backend_pytest_runtime is not None else 'n/a'} |",
+              f"| Frontend (`vitest`) | {frontend_duration_seconds} | {frontend_vitest_runtime if frontend_vitest_runtime is not None else 'n/a'} |",
+              f"| Total | {total_duration_seconds} | n/a |",
+              "",
+              "## Coverage by backend domain (`app/*`)",
+              "",
+              "| Domain | Line coverage |",
+              "| --- | ---: |",
+              backend_cov_rows,
+              "",
+              "## Coverage by frontend component domain (`src/components/*`)",
+              "",
+              "| Domain | Line coverage |",
+              "| --- | ---: |",
+              frontend_cov_rows,
+              "",
+              "## Notes",
+              "",
+              "- This report is designed as auditable run evidence and trend-ready data (`observability-metrics.json`).",
+              "- Flakiness remains governed by `.github/workflows/test-stability-slo.yml`.",
+          ]
+          report = "\n".join(report_lines)
+
+          with open("observability-report.md", "w", encoding="utf-8") as file_obj:
+              file_obj.write(report)
+          PY
+        env:
+          BACKEND_DURATION_SECONDS: ${{ steps.backend_metrics.outputs.backend_duration_seconds }}
+          FRONTEND_DURATION_SECONDS: ${{ steps.frontend_metrics.outputs.frontend_duration_seconds }}
+
+      - name: Build historical dashboard
+        shell: bash
+        run: |
+          python - << 'PY'
+          import json
+          import os
+          import urllib.request
+          from datetime import datetime
+
+
+          def parse_iso(timestamp: str):
+              return datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+
+
+          def fetch_runs(api_base: str, repo: str, token: str):
+              url = f"{api_base}/repos/{repo}/actions/runs?per_page=100"
+              request = urllib.request.Request(
+                  url,
+                  headers={
+                      "Accept": "application/vnd.github+json",
+                      "Authorization": f"Bearer {token}",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                  },
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  payload = json.loads(response.read().decode("utf-8"))
+              return payload.get("workflow_runs", [])
+
+
+          def summarize_group(runs):
+              if not runs:
+                  return {
+                      "count": 0,
+                      "success_rate": 0.0,
+                      "avg_duration_minutes": 0.0,
+                  }
+              success_count = sum(1 for run in runs if run.get("conclusion") == "success")
+              durations = []
+              for run in runs:
+                  started = run.get("run_started_at")
+                  updated = run.get("updated_at")
+                  if not started or not updated:
+                      continue
+                  durations.append((parse_iso(updated) - parse_iso(started)).total_seconds() / 60.0)
+
+              avg_duration = round(sum(durations) / len(durations), 2) if durations else 0.0
+              return {
+                  "count": len(runs),
+                  "success_rate": round((success_count / len(runs)) * 100, 2),
+                  "avg_duration_minutes": avg_duration,
+              }
+
+
+          def to_table(title, runs):
+              lines = [
+                  f"## {title}",
+                  "",
+                  "| Run | Fecha UTC | Estado | Duración (min) | Enlace |",
+                  "| ---: | --- | --- | ---: | --- |",
+              ]
+              if not runs:
+                  lines.append("| n/a | n/a | n/a | n/a | n/a |")
+                  lines.append("")
+                  return lines
+
+              for run in runs:
+                  started = run.get("run_started_at")
+                  updated = run.get("updated_at")
+                  duration = "n/a"
+                  if started and updated:
+                      duration = round((parse_iso(updated) - parse_iso(started)).total_seconds() / 60.0, 2)
+                  lines.append(
+                      f"| {run.get('run_number', 'n/a')} | {started or 'n/a'} | {run.get('conclusion', 'n/a')} | {duration} | [run]({run.get('html_url', '#')}) |"
+                  )
+              lines.append("")
+              return lines
+
+
+          output_json = "observability-trends.json"
+          output_md = "observability-dashboard.md"
+          try:
+              token = os.environ["GITHUB_TOKEN"]
+              repo = os.environ["GITHUB_REPOSITORY"]
+              api_base = os.environ.get("GITHUB_API_URL", "https://api.github.com")
+
+              all_runs = fetch_runs(api_base, repo, token)
+
+              observability_runs = [
+                  run
+                  for run in all_runs
+                  if str(run.get("path", "")).endswith(".github/workflows/test-observability-metrics.yml")
+              ][:15]
+              stability_runs = [
+                  run
+                  for run in all_runs
+                  if str(run.get("path", "")).endswith(".github/workflows/test-stability-slo.yml")
+              ][:15]
+              performance_runs = [
+                  run
+                  for run in all_runs
+                  if str(run.get("path", "")).endswith(".github/workflows/performance-smoke.yml")
+              ][:15]
+
+              trends = {
+                  "generated_at_utc": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+                  "repository": repo,
+                  "observability_metrics": summarize_group(observability_runs),
+                  "stability_slo": summarize_group(stability_runs),
+                  "performance_smoke": summarize_group(performance_runs),
+              }
+
+              with open(output_json, "w", encoding="utf-8") as file_obj:
+                  json.dump(trends, file_obj, indent=2)
+
+              dashboard_lines = [
+                  "# Test Observability Historical Dashboard",
+                  "",
+                  "Visión histórica de ejecuciones (últimas 15 por workflow) para seguimiento de tendencias.",
+                  "",
+                  "## Resumen de tendencias",
+                  "",
+                  "| Workflow | Runs analizadas | Tasa de éxito | Duración promedio (min) |",
+                  "| --- | ---: | ---: | ---: |",
+                  f"| Test Observability Metrics | {trends['observability_metrics']['count']} | {trends['observability_metrics']['success_rate']}% | {trends['observability_metrics']['avg_duration_minutes']} |",
+                  f"| Test Stability SLO | {trends['stability_slo']['count']} | {trends['stability_slo']['success_rate']}% | {trends['stability_slo']['avg_duration_minutes']} |",
+                  f"| Performance Smoke | {trends['performance_smoke']['count']} | {trends['performance_smoke']['success_rate']}% | {trends['performance_smoke']['avg_duration_minutes']} |",
+                  "",
+              ]
+              dashboard_lines.extend(to_table("Detalle: Test Observability Metrics", observability_runs))
+              dashboard_lines.extend(to_table("Detalle: Test Stability SLO", stability_runs))
+              dashboard_lines.extend(to_table("Detalle: Performance Smoke", performance_runs))
+
+              with open(output_md, "w", encoding="utf-8") as file_obj:
+                  file_obj.write("\n".join(dashboard_lines))
+          except Exception as exc:
+              fallback = {
+                  "generated_at_utc": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+                  "error": f"dashboard_generation_failed: {exc}",
+              }
+              with open(output_json, "w", encoding="utf-8") as file_obj:
+                  json.dump(fallback, file_obj, indent=2)
+              with open(output_md, "w", encoding="utf-8") as file_obj:
+                  file_obj.write(
+                      "# Test Observability Historical Dashboard\n\n"
+                      "No se pudo construir el histórico automáticamente en esta ejecución.\n"
+                  )
+          PY
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload observability report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: observability-report
+          path: |
+            observability-report.md
+            observability-metrics.json
+            observability-dashboard.md
+            observability-trends.json
+            backend-test.log
+            frontend-test.log
+
+      - name: Enforce quality exits
+        shell: bash
+        run: |
+          backend_exit_code=${{ steps.backend_metrics.outputs.backend_exit_code }}
+          frontend_exit_code=${{ steps.frontend_metrics.outputs.frontend_exit_code }}
+
+          if [ "$backend_exit_code" -ne 0 ] || [ "$frontend_exit_code" -ne 0 ]; then
+            echo "One or more suites failed. See observability artifact logs."
+            exit 1
+          fi

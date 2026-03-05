@@ -1,10 +1,32 @@
 {
   "admin": {
     "email": "admin@universidad.com",
-    "password": "password123456"
+    "password": "password123456",
+    "full_name": "Admin QA",
+    "roles": ["Administrador"]
+  },
+  "teacher": {
+    "email": "docente@universidad.com",
+    "password": "password123456",
+    "full_name": "Docente QA",
+    "roles": ["Docente"]
+  },
+  "student": {
+    "email": "estudiante@universidad.com",
+    "password": "password123456",
+    "full_name": "Estudiante QA",
+    "roles": ["Estudiante"]
   },
   "invalid": {
     "email": "wrong@universidad.com",
     "password": "invalid-password"
+  },
+  "empty": {
+    "email": "",
+    "password": ""
+  },
+  "shortPassword": {
+    "email": "admin@universidad.com",
+    "password": "123"
   }
 }

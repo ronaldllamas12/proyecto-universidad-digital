@@ -2,19 +2,19 @@
   "initialTasks": [
     {
       "id": "task-1",
-      "title": "Preparar informe QA",
+      "title": "Preparar informe de calidad",
       "completed": false
     },
-    {
-      "id": "task-2",
-      "title": "Validar persistencia",
-      "completed": true
-    }
+    { "id": "task-2", "title": "Revisar casos de prueba", "completed": true },
+    { "id": "task-3", "title": "Actualizar documentación", "completed": false }
   ],
   "newTask": {
-    "title": "Crear tarea desde Cypress"
+    "title": "Crear tarea desde Cypress E2E"
   },
   "invalidTask": {
     "title": ""
+  },
+  "longTitle": {
+    "title": "Esta es una tarea con un título extremadamente largo que excede los límites razonables y debería ser rechazada por la validación del backend para evitar datos corruptos en la base de datos del sistema universitario"
   }
 }

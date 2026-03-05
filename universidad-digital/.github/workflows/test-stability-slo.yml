@@ -1,0 +1,110 @@
+name: Test Stability SLO
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+jobs:
+  stability-slo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run repeated backend tests
+        id: backend_runs
+        shell: bash
+        run: |
+          total=3
+          failed=0
+          for i in 1 2 3; do
+            echo "Backend run #$i"
+            if ! (cd backend && python -m pytest -q); then
+              failed=$((failed+1))
+            fi
+          done
+          rate=$(python -c "print(round(($failed/$total)*100,2))")
+          echo "backend_failed=$failed" >> $GITHUB_OUTPUT
+          echo "backend_total=$total" >> $GITHUB_OUTPUT
+          echo "backend_rate=$rate" >> $GITHUB_OUTPUT
+
+      - name: Run repeated frontend tests
+        id: frontend_runs
+        shell: bash
+        run: |
+          total=3
+          failed=0
+          for i in 1 2 3; do
+            echo "Frontend run #$i"
+            if ! (cd frontend && npx vitest run --coverage); then
+              failed=$((failed+1))
+            fi
+          done
+          rate=$(python -c "print(round(($failed/$total)*100,2))")
+          echo "frontend_failed=$failed" >> $GITHUB_OUTPUT
+          echo "frontend_total=$total" >> $GITHUB_OUTPUT
+          echo "frontend_rate=$rate" >> $GITHUB_OUTPUT
+
+      - name: Build stability report
+        id: report
+        shell: bash
+        run: |
+          backend_failed=${{ steps.backend_runs.outputs.backend_failed }}
+          backend_total=${{ steps.backend_runs.outputs.backend_total }}
+          backend_rate=${{ steps.backend_runs.outputs.backend_rate }}
+
+          frontend_failed=${{ steps.frontend_runs.outputs.frontend_failed }}
+          frontend_total=${{ steps.frontend_runs.outputs.frontend_total }}
+          frontend_rate=${{ steps.frontend_runs.outputs.frontend_rate }}
+
+          total_failed=$((backend_failed + frontend_failed))
+          total_runs=$((backend_total + frontend_total))
+          total_rate=$(python -c "print(round(($total_failed/$total_runs)*100,2))")
+
+          {
+            echo "# Stability Report"
+            echo
+            echo "- Backend flake rate: ${backend_rate}% (${backend_failed}/${backend_total})"
+            echo "- Frontend flake rate: ${frontend_rate}% (${frontend_failed}/${frontend_total})"
+            echo "- Total flake rate: ${total_rate}% (${total_failed}/${total_runs})"
+            echo
+            echo "SLO objetivo: <= 2.00%"
+          } > stability-report.md
+
+          echo "total_rate=$total_rate" >> $GITHUB_OUTPUT
+
+      - name: Upload stability report
+        uses: actions/upload-artifact@v4
+        with:
+          name: stability-report
+          path: stability-report.md
+
+      - name: Enforce SLO (<= 2%)
+        shell: bash
+        run: |
+          rate=${{ steps.report.outputs.total_rate }}
+          python -c "import sys; rate=float('$rate'); sys.exit(0 if rate <= 2.0 else 1)"
