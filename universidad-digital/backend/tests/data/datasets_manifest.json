@@ -1,0 +1,41 @@
+{
+  "manifest_version": "1.0.0",
+  "updated_at": "2026-03-07",
+  "policy": {
+    "default_classification": "synthetic",
+    "allow_real_pii": false,
+    "versioning_scheme": "semver"
+  },
+  "datasets": [
+    {
+      "id": "users_core",
+      "version": "1.0.0",
+      "domain": "users",
+      "classification": "synthetic",
+      "path": "backend/tests/data/datasets/users_core_v1.json",
+      "used_by": ["backend/tests/integration", "frontend/cypress/e2e/auth"]
+    },
+    {
+      "id": "academic_flow",
+      "version": "1.0.0",
+      "domain": "subjects-periods-enrollments",
+      "classification": "synthetic",
+      "path": "backend/tests/data/datasets/academic_flow_v1.json",
+      "used_by": [
+        "backend/tests/integration",
+        "frontend/cypress/e2e/periods",
+        "frontend/cypress/e2e/enrollments"
+      ]
+    },
+    {
+      "id": "openapi_contract",
+      "version": "1.0.0",
+      "domain": "api-contract",
+      "classification": "synthetic",
+      "path": "backend/tests/data/openapi_contract_baseline.json",
+      "used_by": [
+        "backend/tests/integration/test_api_contract_compatibility.py"
+      ]
+    }
+  ]
+}

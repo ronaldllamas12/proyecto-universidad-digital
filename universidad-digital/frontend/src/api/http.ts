@@ -5,6 +5,39 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
 let onUnauthorized: (() => void) | null = null;
 
+const RETRY_MAX_ATTEMPTS = 2;
+const RETRY_BASE_DELAY_MS = 200;
+
+type RetryConfig = {
+  __retryCount?: number;
+};
+
+function isRetriableError(error: unknown): boolean {
+  const e = error as {
+    code?: string;
+    response?: { status?: number };
+  };
+
+  if (e.code === "ERR_NETWORK" || e.code === "ECONNABORTED") {
+    return true;
+  }
+
+  const status = e.response?.status;
+  if (!status) {
+    return true;
+  }
+
+  if (status === 429) {
+    return true;
+  }
+
+  return status >= 500;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function setUnauthorizedHandler(handler: (() => void) | null) {
   onUnauthorized = handler;
 }
@@ -25,7 +58,21 @@ http.interceptors.request.use((config) => {
 
 http.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const requestConfig = (error?.config ?? {}) as RetryConfig;
+
+    if (isRetriableError(error)) {
+      requestConfig.__retryCount = requestConfig.__retryCount ?? 0;
+
+      if (requestConfig.__retryCount < RETRY_MAX_ATTEMPTS) {
+        requestConfig.__retryCount += 1;
+        const backoffMs =
+          RETRY_BASE_DELAY_MS * 2 ** (requestConfig.__retryCount - 1);
+        await delay(backoffMs);
+        return http.request(error.config);
+      }
+    }
+
     if (error?.response?.status === 401 && onUnauthorized) {
       onUnauthorized();
     }

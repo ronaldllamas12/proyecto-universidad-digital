@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.config import settings
 from app.core.database import SessionLocal, init_db
@@ -19,6 +21,41 @@ from app.roles.routes import router as roles_router
 from app.subjects.routes import router as subjects_router
 from app.users.routes import router as users_router
 from app.dashboard.router import router as dashboard_router
+
+
+SECURITY_RESPONSE_HEADERS: tuple[tuple[str, str], ...] = (
+    ("x-content-type-options", "nosniff"),
+    ("x-frame-options", "DENY"),
+    ("referrer-policy", "no-referrer"),
+    ("content-security-policy", "default-src 'self'"),
+    ("strict-transport-security", "max-age=63072000; includeSubDomains; preload"),
+)
+
+
+class SecurityHeadersMiddleware:
+    """Attach security headers to all HTTP responses at ASGI level."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_with_security_headers(message: Message) -> None:
+            if message.get("type") == "http.response.start":
+                headers = list(message.get("headers", []))
+                present_names = {name.lower() for name, _ in headers}
+                for header_name, header_value in SECURITY_RESPONSE_HEADERS:
+                    encoded_name = header_name.encode("latin-1")
+                    if encoded_name not in present_names:
+                        headers.append((encoded_name, header_value.encode("latin-1")))
+                message["headers"] = headers
+
+            await send(message)
+
+        await self.app(scope, receive, send_with_security_headers)
 
 
 
@@ -55,6 +92,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 @app.exception_handler(NotFoundError)
@@ -84,7 +122,16 @@ def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
 
 @app.exception_handler(RequestValidationError)
 def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
-    return JSONResponse(status_code=422, content={"detail": exc.errors()})
+    normalized_errors: list[dict[str, Any]] = []
+    for item in exc.errors():
+        normalized = dict(item)
+        ctx = normalized.get("ctx")
+        if isinstance(ctx, dict) and "error" in ctx:
+            safe_ctx = dict(ctx)
+            safe_ctx["error"] = str(safe_ctx["error"])
+            normalized["ctx"] = safe_ctx
+        normalized_errors.append(normalized)
+    return JSONResponse(status_code=422, content={"detail": normalized_errors})
 
 
 app.include_router(auth_router)

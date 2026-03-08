@@ -1,0 +1,23 @@
+{
+  "dataset_id": "users_core",
+  "version": "1.0.0",
+  "classification": "synthetic",
+  "owner": "qa-backend",
+  "records": [
+    {
+      "email": "admin.test@universidad.com",
+      "full_name": "Admin Test",
+      "role": "Administrador"
+    },
+    {
+      "email": "docente.test@universidad.com",
+      "full_name": "Docente Test",
+      "role": "Docente"
+    },
+    {
+      "email": "estudiante.test@universidad.com",
+      "full_name": "Estudiante Test",
+      "role": "Estudiante"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "dataset_id": "academic_flow",
+  "version": "1.0.0",
+  "classification": "synthetic",
+  "owner": "qa-backend",
+  "records": {
+    "period": {
+      "code": "2026-A",
+      "name": "Periodo A 2026"
+    },
+    "subject": {
+      "code": "MAT-101",
+      "name": "Matematicas Basicas",
+      "credits": 3
+    },
+    "enrollment": {
+      "status": "active"
+    }
+  }
+}

@@ -35,7 +35,23 @@ jobs:
         run: |
           ruff check app tests
 
+      - name: Validate versioned test datasets
+        working-directory: backend
+        run: |
+          python scripts/validate_test_datasets.py
+
       - name: Run tests with coverage gate
         working-directory: backend
         run: |
           python -m pytest -q
+
+      - name: Generate coverage dashboard by module
+        working-directory: backend
+        run: |
+          python scripts/generate_module_coverage_dashboard.py
+
+      - name: Upload coverage dashboard artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-by-module
+          path: docs/TEST_COVERAGE_BY_MODULE_DASHBOARD.md

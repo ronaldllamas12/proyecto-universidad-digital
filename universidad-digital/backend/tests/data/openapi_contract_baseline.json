@@ -1,0 +1,299 @@
+{
+  "openapi": "3.1.0",
+  "api_version": "1.0.0",
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "operation_id": "login_endpoint_auth_login_post",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operation_id": "logout_endpoint_auth_logout_post",
+        "response_codes": [
+          "204"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operation_id": "me_endpoint_auth_me_get",
+        "response_codes": [
+          "200"
+        ]
+      }
+    },
+    "/dashboard/admin": {
+      "get": {
+        "operation_id": "admin_dashboard_dashboard_admin_get",
+        "response_codes": [
+          "200"
+        ]
+      }
+    },
+    "/dashboard/student": {
+      "get": {
+        "operation_id": "student_dashboard_dashboard_student_get",
+        "response_codes": [
+          "200"
+        ]
+      }
+    },
+    "/dashboard/teacher": {
+      "get": {
+        "operation_id": "teacher_dashboard_dashboard_teacher_get",
+        "response_codes": [
+          "200"
+        ]
+      }
+    },
+    "/enrollments/": {
+      "get": {
+        "operation_id": "list_enrollments_endpoint_enrollments__get",
+        "response_codes": [
+          "200"
+        ]
+      },
+      "post": {
+        "operation_id": "create_enrollment_endpoint_enrollments__post",
+        "response_codes": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/enrollments/{enrollment_id}": {
+      "delete": {
+        "operation_id": "deactivate_enrollment_endpoint_enrollments__enrollment_id__delete",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "get": {
+        "operation_id": "get_enrollment_endpoint_enrollments__enrollment_id__get",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operation_id": "update_enrollment_endpoint_enrollments__enrollment_id__put",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/grades/": {
+      "get": {
+        "operation_id": "list_grades_endpoint_grades__get",
+        "response_codes": [
+          "200"
+        ]
+      },
+      "post": {
+        "operation_id": "create_grade_endpoint_grades__post",
+        "response_codes": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/grades/{grade_id}": {
+      "delete": {
+        "operation_id": "delete_grade_endpoint_grades__grade_id__delete",
+        "response_codes": [
+          "204",
+          "422"
+        ]
+      },
+      "get": {
+        "operation_id": "get_grade_endpoint_grades__grade_id__get",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operation_id": "update_grade_endpoint_grades__grade_id__put",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/periods/": {
+      "get": {
+        "operation_id": "list_periods_endpoint_periods__get",
+        "response_codes": [
+          "200"
+        ]
+      },
+      "post": {
+        "operation_id": "create_period_endpoint_periods__post",
+        "response_codes": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/periods/{period_id}": {
+      "delete": {
+        "operation_id": "delete_period_endpoint_periods__period_id__delete",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "get": {
+        "operation_id": "get_period_endpoint_periods__period_id__get",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operation_id": "update_period_endpoint_periods__period_id__put",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/roles/": {
+      "get": {
+        "operation_id": "list_roles_endpoint_roles__get",
+        "response_codes": [
+          "200"
+        ]
+      },
+      "post": {
+        "operation_id": "create_role_endpoint_roles__post",
+        "response_codes": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/roles/{role_id}": {
+      "delete": {
+        "operation_id": "delete_role_endpoint_roles__role_id__delete",
+        "response_codes": [
+          "204",
+          "422"
+        ]
+      },
+      "get": {
+        "operation_id": "get_role_endpoint_roles__role_id__get",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operation_id": "update_role_endpoint_roles__role_id__put",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/subjects/": {
+      "get": {
+        "operation_id": "list_subjects_endpoint_subjects__get",
+        "response_codes": [
+          "200"
+        ]
+      },
+      "post": {
+        "operation_id": "create_subject_endpoint_subjects__post",
+        "response_codes": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/subjects/{subject_id}": {
+      "delete": {
+        "operation_id": "delete_subject_endpoint_subjects__subject_id__delete",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "get": {
+        "operation_id": "get_subject_endpoint_subjects__subject_id__get",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operation_id": "update_subject_endpoint_subjects__subject_id__put",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/users/": {
+      "get": {
+        "operation_id": "list_users_endpoint_users__get",
+        "response_codes": [
+          "200"
+        ]
+      },
+      "post": {
+        "operation_id": "create_user_endpoint_users__post",
+        "response_codes": [
+          "201",
+          "422"
+        ]
+      }
+    },
+    "/users/{user_id}": {
+      "delete": {
+        "operation_id": "deactivate_user_endpoint_users__user_id__delete",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "get": {
+        "operation_id": "get_user_endpoint_users__user_id__get",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "put": {
+        "operation_id": "update_user_endpoint_users__user_id__put",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      }
+    },
+    "/users/{user_id}/roles/{role_id}": {
+      "delete": {
+        "operation_id": "remove_role_endpoint_users__user_id__roles__role_id__delete",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      },
+      "post": {
+        "operation_id": "assign_role_endpoint_users__user_id__roles__role_id__post",
+        "response_codes": [
+          "200",
+          "422"
+        ]
+      }
+    }
+  }
+}

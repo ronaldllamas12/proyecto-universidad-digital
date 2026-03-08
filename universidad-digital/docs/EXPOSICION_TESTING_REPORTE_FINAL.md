@@ -1,6 +1,6 @@
 # Exposición — Reporte final de testing
 
-Fecha: 2026-03-04  
+Fecha: 2026-03-07  
 Proyecto: Universidad Digital  
 Objetivo: explicar qué pruebas existen, qué se encontró en el checklist inicial, qué correcciones se aplicaron y qué resultados se obtuvieron.
 
@@ -86,6 +86,32 @@ Durante la evaluación inicial por capas y enterprise, los principales hallazgos
   - `frontend/cypress.config.ts`
   - `frontend/cypress.env.example.json`
   - `frontend/cypress/support/commands/auth.commands.ts`
+- Se añadió middleware de headers de seguridad en backend:
+  - `backend/app/main.py`
+- Se reforzó el middleware de seguridad a nivel ASGI para asegurar propagación en toda respuesta HTTP (incluyendo errores/controladores internos):
+  - `backend/app/main.py`
+- Se añadió suite dedicada de seguridad (SQLi/XSS + headers):
+  - `backend/tests/integration/test_security_api.py`
+
+## Resiliencia avanzada
+
+- Se implementó política de retry/backoff en cliente HTTP frontend para errores transitorios:
+  - `frontend/src/api/http.ts`
+- Se añadieron tests unitarios dedicados de retry/backoff:
+  - `frontend/tests/unit/http.retry.unit.test.ts`
+- Se formalizó suite dedicada de recuperación tras falla transitoria de dependencia:
+  - `backend/tests/integration/test_dependency_recovery_api.py`
+- Se formalizó suite dedicada de concurrencia en dominio de usuarios:
+  - `backend/tests/integration/test_users_concurrency_api.py`
+
+## Cobertura por dominio
+
+- Se añadió dashboard automático de cobertura por módulo backend:
+  - `backend/scripts/generate_module_coverage_dashboard.py`
+  - `docs/TEST_COVERAGE_BY_MODULE_DASHBOARD.md`
+- Se integró generación/publicación del dashboard en CI:
+  - `.github/workflows/backend-ci.yml`
+  - `.github/workflows/quality-gate-fullstack.yml`
 
 ## Gobernanza y release readiness
 
@@ -93,14 +119,36 @@ Durante la evaluación inicial por capas y enterprise, los principales hallazgos
   - `docs/GO_NO_GO_RELEASE.md`
 - Se formalizó trazabilidad requisito→test:
   - `docs/TEST_TRACEABILITY_MATRIX.md`
+- Se formalizó estrategia fast/full full-stack:
+  - `docs/TEST_EXECUTION_STRATEGY_FAST_FULL.md`
+- Se materializó registro de decisiones de prompts IA:
+  - `prompts/PROMPT_DECISIONS_LOG.md`
+- Se formalizó control de breaking changes de contrato API:
+  - `backend/tests/integration/test_api_contract_compatibility.py`
+  - `backend/tests/data/openapi_contract_baseline.json`
+  - `backend/scripts/generate_openapi_contract_baseline.py`
+- Se formalizó versionado de datasets críticos y estrategia de datos por entorno:
+  - `backend/tests/data/datasets_manifest.json`
+  - `backend/tests/data/datasets/*.json`
+  - `docs/TEST_DATA_ENVIRONMENT_STRATEGY.md`
+  - `backend/scripts/validate_test_datasets.py`
+- Se agregó smoke de equivalencia en staging para integraciones externas:
+  - `.github/workflows/staging-equivalence-smoke.yml`
+  - `backend/scripts/staging_equivalence_smoke.py`
+  - `docs/STAGING_EQUIVALENCE_SMOKE.md`
+  - `docs/EXTERNAL_INTEGRATIONS_TEST_MATRIX.md`
 
 ## 4) Resultados obtenidos
 
 ## Resultado global de checklist enterprise
 
-- Estado actual: **73 ✅ / 0 ❌ / 17 ⚠️**
-- Puntaje actual: **81%**
+- Estado actual: **89 ✅ / 0 ❌ / 1 ⚠️**
+- Puntaje actual: **99%**
 - Mejoras destacadas:
+  - Contratos API y compatibilidad: **100%** (bloque 2)
+  - Seguridad de aplicación: **100%** (bloque 3)
+  - Datos de prueba y consistencia: **100%** (bloque 6)
+  - Cobertura de integraciones externas: **sistemática** (bloque 11)
   - Observabilidad: **100%** (bloque 9)
   - Performance y escalabilidad: **100%** (bloque 4)
   - Gobernanza IA: **100%** (bloque 14)
@@ -116,6 +164,28 @@ Durante la evaluación inicial por capas y enterprise, los principales hallazgos
 - Ejecución de performance backend (incluyendo estrés):
   - `python -m pytest tests/performance -m performance --no-cov -q -s`
   - Resultado: **4 passed**
+- Ejecución de compatibilidad de contrato API:
+  - `python -m pytest tests/integration/test_api_contract_compatibility.py -q --no-cov`
+  - Resultado: **2 passed**
+- Validación de datasets versionados:
+  - `python scripts/validate_test_datasets.py`
+  - Resultado: **validado correctamente**
+- Smoke de equivalencia staging:
+  - `python scripts/staging_equivalence_smoke.py`
+  - Resultado actualizado: **4/5 PASS, 1 gap detectado (security headers en staging)**
+  - Diagnóstico: en ejecución local del backend los headers de seguridad sí están presentes; la brecha queda acotada a despliegue/proxy de staging.
+- Ejecución de tests de retry/backoff frontend:
+  - `npx vitest run tests/unit/http.retry.unit.test.ts`
+  - Resultado: **3 passed**
+- Ejecución de seguridad backend tras hardening ASGI:
+  - `python -m pytest tests/integration/test_security_api.py -q --no-cov`
+  - Resultado: **4 passed**
+- Ejecución de suites dedicadas de resiliencia/concurrencia backend:
+  - `python -m pytest tests/integration/test_dependency_recovery_api.py tests/integration/test_users_concurrency_api.py -q --no-cov`
+  - Resultado: **3 passed**
+- Generación de dashboard de cobertura por módulo:
+  - `python scripts/generate_module_coverage_dashboard.py`
+  - Resultado: **`docs/TEST_COVERAGE_BY_MODULE_DASHBOARD.md` generado**
 
 ## 5) Qué decir en la exposición (guion sugerido)
 
@@ -132,13 +202,15 @@ Durante la evaluación inicial por capas y enterprise, los principales hallazgos
    - Mostrar workflows/documentos creados y por qué reducen riesgo técnico.
 
 5. **Resultados (1 min):**
-   - “Enterprise en 81% (73✅/0❌/17⚠️), capas 1–8 en 100/100, performance con stress validado.”
+
+- “Enterprise en 99% (89✅/0❌/1⚠️), capas 1–8 en 100/100, seguridad dedicada validada, contrato API protegido, resiliencia y concurrencia formalizadas, cobertura por módulo automatizada, datasets versionados, integraciones externas cubiertas y performance con stress validado.”
 
 6. **Cierre (30s):**
-   - “Las brechas restantes son de madurez avanzada (integraciones externas, complejidad automática y fast/full full-stack).”
+
+- “La brecha restante es de despliegue (equivalencia CI/producción por propagación de security headers en staging).”
 
 ## 6) Próximos pasos recomendados
 
-- P1: reforzar cobertura sistemática de integraciones externas críticas.
-- P1: formalizar estrategia fast/full para todo el stack (más allá de performance backend).
-- P2: incorporar métrica automática de complejidad en tests largos.
+- P1: cerrar gap remanente detectado por smoke en staging (`security headers`).
+- P2: tras redeploy, re-ejecutar smoke para cerrar 5/5 y actualizar evidencia.
+- P3: mantener tablero de cobertura por módulo como control de regresión por dominio.

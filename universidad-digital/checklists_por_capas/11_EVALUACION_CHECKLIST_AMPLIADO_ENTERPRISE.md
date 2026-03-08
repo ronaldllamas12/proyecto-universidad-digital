@@ -1,6 +1,6 @@
 # Evaluación precargada — Checklist Ampliado Enterprise
 
-Fecha: 2026-03-04  
+Fecha: 2026-03-07  
 Método: revisión estática de repositorio (sin ejecución adicional de pruebas ni cambios de código).
 
 ## 1) Calidad de diseño de casos
@@ -21,20 +21,20 @@ Método: revisión estática de repositorio (sin ejecución adicional de pruebas
 - [✅] Validación de shape JSON y `content-type`
 - [✅] Casos 4xx (401/422) presentes
 - [✅] Casos de negocio (ej. invalidaciones) presentes en e2e resiliencia
-- [⚠️] Control formal de breaking changes (esquema versionado/consumer contract)
+- [✅] Control formal de breaking changes (baseline OpenAPI + test de compatibilidad: `backend/tests/integration/test_api_contract_compatibility.py` y `backend/tests/data/openapi_contract_baseline.json`)
 
-**Bloque:** 5 ✅ / 0 ❌ / 1 ⚠️ (83%)
+**Bloque:** 6 ✅ / 0 ❌ / 0 ⚠️ (100%)
 
 ## 3) Seguridad de aplicación
 
 - [✅] Se prueban autenticación y expiración/sesión
 - [✅] Se prueban autorizaciones por rol (RBAC)
 - [✅] Se prueban accesos indebidos a rutas protegidas
-- [⚠️] Pruebas explícitas de inyección (SQLi/XSS) no evidenciadas como suite dedicada
-- [⚠️] Pruebas de headers de seguridad no evidenciadas
+- [✅] Pruebas explícitas de inyección (SQLi/XSS) evidenciadas en suite dedicada (`backend/tests/integration/test_security_api.py`)
+- [✅] Pruebas de headers de seguridad evidenciadas (`backend/tests/integration/test_security_api.py`)
 - [✅] Rutas sensibles sin credenciales devuelven no autorizado
 
-**Bloque:** 4 ✅ / 0 ❌ / 2 ⚠️ (67%)
+**Bloque:** 6 ✅ / 0 ❌ / 0 ⚠️ (100%)
 
 ## 4) Performance y escalabilidad
 
@@ -50,46 +50,46 @@ Método: revisión estática de repositorio (sin ejecución adicional de pruebas
 ## 5) Resiliencia y tolerancia a fallos
 
 - [✅] Se prueban fallos de red (`forceNetworkError`)
-- [⚠️] Reintentos/backoff no evidenciados como política
+- [✅] Reintentos/backoff evidenciados como política (`frontend/src/api/http.ts` + `frontend/tests/unit/http.retry.unit.test.ts`)
 - [✅] Degradación parcial y manejo de errores en e2e resiliencia
 - [✅] Manejo de errores sin exponer detalle técnico en UI
-- [⚠️] Recuperación tras falla de dependencia no formalizada como suite separada
-- [⚠️] Disponibilidad parcial de servicios externos no cubierta de forma sistemática
+- [✅] Recuperación tras falla de dependencia formalizada como suite separada (`backend/tests/integration/test_dependency_recovery_api.py`)
+- [✅] Disponibilidad parcial de servicios externos cubierta de forma sistemática (`staging_equivalence_smoke.py` + reporte)
 
-**Bloque:** 3 ✅ / 0 ❌ / 3 ⚠️ (50%)
+**Bloque:** 6 ✅ / 0 ❌ / 0 ⚠️ (100%)
 
 ## 6) Datos de prueba y consistencia
 
 - [✅] Fixtures/factories reutilizables
-- [⚠️] Determinismo total (seed global) no explicitado
+- [✅] Determinismo total con seed global explicitado (`backend/tests/conftest.py`)
 - [✅] No se comparten datos persistentes no controlados
 - [✅] Limpieza de datos/estado entre tests
-- [⚠️] Separación formal de datos sensibles vs sintéticos no documentada
-- [⚠️] Versionado de datasets críticos no explícito
+- [✅] Separación formal de datos sensibles vs sintéticos documentada (`docs/TEST_DATA_ENVIRONMENT_STRATEGY.md`)
+- [✅] Versionado de datasets críticos explícito (`backend/tests/data/datasets_manifest.json`)
 
-**Bloque:** 3 ✅ / 0 ❌ / 3 ⚠️ (50%)
+**Bloque:** 6 ✅ / 0 ❌ / 0 ⚠️ (100%)
 
 ## 7) Entornos y configuración
 
 - [✅] Entorno local reproducible documentado
-- [⚠️] Equivalencia CI vs producción no demostrada completamente
+- [⚠️] Equivalencia CI vs producción aún parcial (smoke de staging automatizado 4/5; pendiente propagación de security headers en despliegue/redeploy)
 - [✅] Variables de entorno centralizadas en config
 - [✅] No hay secretos hardcodeados en tests/config de test
-- [⚠️] Validación sistemática de diferencias local/CI/staging
-- [⚠️] Estrategia formal de test data por entorno no encontrada
+- [✅] Validación sistemática de diferencias local/CI/staging (reglas + validación automática de datasets en CI)
+- [✅] Estrategia formal de test data por entorno documentada (`docs/TEST_DATA_ENVIRONMENT_STRATEGY.md`)
 
-**Bloque:** 3 ✅ / 0 ❌ / 3 ⚠️ (50%)
+**Bloque:** 5 ✅ / 0 ❌ / 1 ⚠️ (83%)
 
 ## 8) CI/CD y quality gates
 
 - [✅] Pipeline con lint + tests + cobertura
 - [✅] Pipeline falla ante quality gate incumplido
 - [✅] Se publican artefactos de pruebas/cobertura
-- [⚠️] Estrategia separada rápida/completa formalizada para todo el stack
+- [✅] Estrategia separada rápida/completa formalizada para todo el stack (`docs/TEST_EXECUTION_STRATEGY_FAST_FULL.md`)
 - [✅] Existe estrategia de pruebas para PR vs main
 - [✅] Se evita merging con tests inestables con control SLO
 
-**Bloque:** 5 ✅ / 0 ❌ / 1 ⚠️ (83%)
+**Bloque:** 6 ✅ / 0 ❌ / 0 ⚠️ (100%)
 
 ## 9) Observabilidad y diagnósticos de pruebas
 
@@ -106,23 +106,23 @@ Método: revisión estática de repositorio (sin ejecución adicional de pruebas
 
 - [✅] Baja duplicación estructural
 - [✅] Reutilización con helpers/page objects/fixtures
-- [⚠️] Complejidad de tests largos sin métrica automática
+- [✅] Complejidad de tests largos con métrica automática en CI (`radon` + `jscpd`)
 - [✅] Evidencia de refactor/estructura por capas
 - [✅] Convenciones de naming presentes
 - [✅] Onboarding relativamente claro por documentación de arquitectura
 
-**Bloque:** 5 ✅ / 0 ❌ / 1 ⚠️ (83%)
+**Bloque:** 6 ✅ / 0 ❌ / 0 ⚠️ (100%)
 
 ## 11) Cobertura inteligente
 
 - [✅] Rutas de riesgo cubiertas (auth/permisos/CRUD principal)
 - [✅] Seguridad/autorización cubierta funcionalmente
 - [✅] Errores y excepciones relevantes cubiertos en áreas críticas
-- [⚠️] Integraciones externas críticas cubiertas sistemáticamente
+- [✅] Integraciones externas críticas cubiertas sistemáticamente (matriz + smoke staging)
 - [✅] Sin inflación evidente por tests triviales
-- [⚠️] Cobertura por módulo y no solo global aún sin tablero detallado por dominio
+- [✅] Cobertura por módulo y no solo global con tablero detallado por dominio (`docs/TEST_COVERAGE_BY_MODULE_DASHBOARD.md`)
 
-**Bloque:** 4 ✅ / 0 ❌ / 2 ⚠️ (67%)
+**Bloque:** 6 ✅ / 0 ❌ / 0 ⚠️ (100%)
 
 ## 12) Frontend UX/A11y testing
 
@@ -142,9 +142,9 @@ Método: revisión estática de repositorio (sin ejecución adicional de pruebas
 - [✅] Unicidad/conflictos presentes en pruebas de negocio
 - [✅] Reglas temporales (periodos/fechas) con cobertura funcional
 - [✅] Consistencia cruzada básica validada en flows
-- [⚠️] Concurrencia específica no evidenciada como suite dedicada
+- [✅] Concurrencia específica evidenciada como suite dedicada (`backend/tests/integration/test_users_concurrency_api.py`)
 
-**Bloque:** 5 ✅ / 0 ❌ / 1 ⚠️ (83%)
+**Bloque:** 6 ✅ / 0 ❌ / 0 ⚠️ (100%)
 
 ## 14) Gobernanza de IA en testing
 
@@ -153,7 +153,7 @@ Método: revisión estática de repositorio (sin ejecución adicional de pruebas
 - [✅] Trazabilidad de cambios asistidos por IA
 - [✅] Evidencia formal de validación humana por sugerencia
 - [✅] Control de duplicación/artefactos generado por IA
-- [✅] Registro formal de decisiones de prompt por cambio
+- [✅] Registro formal de decisiones de prompt por cambio (`prompts/PROMPT_DECISIONS_LOG.md`)
 
 **Bloque:** 6 ✅ / 0 ❌ / 0 ⚠️ (100%)
 
@@ -172,12 +172,12 @@ Método: revisión estática de repositorio (sin ejecución adicional de pruebas
 
 ## Resultado global del checklist enterprise
 
-- Totales: **73 ✅ / 0 ❌ / 17 ⚠️** (90 ítems)
-- Puntaje base (✅ sobre total): **81%**
-- Lectura: capacidad de testing fuerte en calidad funcional, CI, gobernanza IA, performance (incluyendo estrés sostenido), release readiness, trazabilidad y observabilidad histórica; las brechas principales quedan en cobertura avanzada por integraciones y deuda técnica de mantenibilidad.
+- Totales: **89 ✅ / 0 ❌ / 1 ⚠️** (90 ítems)
+- Puntaje base (✅ sobre total): **99%**
+- Lectura: capacidad de testing prácticamente enterprise-complete en calidad funcional, CI, seguridad de aplicación, contratos API, performance, cobertura por módulo, release readiness, trazabilidad, observabilidad histórica y gobernanza IA; la brecha remanente queda concentrada en equivalencia CI/producción por propagación de security headers en staging.
 
 ## Prioridades inmediatas
 
-1. **P1:** reforzar cobertura sistemática de integraciones externas críticas.
-2. **P1:** formalizar estrategia fast/full para el stack completo (no solo performance backend).
-3. **P2:** incorporar métricas automáticas de complejidad en tests largos para deuda técnica.
+1. **P1:** cerrar brecha remanente de equivalencia CI/producción detectada por smoke (`security headers` en staging; backend ya endurecido con middleware ASGI, validar redeploy y capa proxy).
+2. **P2:** tras redeploy, rerun del smoke y actualización de evidencia a 5/5.
+3. **P3:** mantener dashboard de cobertura por módulo como control de regresión por dominio en cada release.

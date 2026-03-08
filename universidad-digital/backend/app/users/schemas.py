@@ -13,6 +13,14 @@ class UserCreate(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     role_ids: list[int] | None = None
 
+    @field_validator("full_name")
+    @classmethod
+    def validate_full_name_no_html(cls, value: str) -> str:
+        normalized = value.strip()
+        if "<" in normalized or ">" in normalized:
+            raise ValueError("full_name no puede contener etiquetas HTML.")
+        return normalized
+
 
 class UserUpdate(BaseModel):
     """Datos permitidos para actualizar un usuario."""
@@ -21,6 +29,16 @@ class UserUpdate(BaseModel):
     password: str | None = Field(default=None, min_length=8, max_length=128)
     is_active: bool | None = None
     role_ids: list[int] | None = None
+
+    @field_validator("full_name")
+    @classmethod
+    def validate_full_name_no_html(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if "<" in normalized or ">" in normalized:
+            raise ValueError("full_name no puede contener etiquetas HTML.")
+        return normalized
 
 
 class UserResponse(BaseModel):

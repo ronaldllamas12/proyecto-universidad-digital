@@ -38,8 +38,20 @@ jobs:
       - name: Lint backend
         run: ruff check app tests
 
+      - name: Validate versioned test datasets
+        run: python scripts/validate_test_datasets.py
+
       - name: Run backend tests with coverage gate
         run: python -m pytest -q
+
+      - name: Generate backend coverage dashboard by module
+        run: python scripts/generate_module_coverage_dashboard.py
+
+      - name: Upload backend coverage dashboard artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-by-module
+          path: docs/TEST_COVERAGE_BY_MODULE_DASHBOARD.md
 
   frontend-quality:
     runs-on: ubuntu-latest

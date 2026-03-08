@@ -1,19 +1,32 @@
 # tests/conftest.py
 
 from typing import AsyncGenerator, Generator
+import random
 
+import factory.random
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
+from faker import Faker
 
 from app.core.database import Base
 from app.core.deps import get_db
 from app.main import app
 
 from tests.factories import BaseFactory, UserFactory, RoleFactory
+
+
+TEST_GLOBAL_SEED = 20260307
+
+
+@pytest.fixture(scope="session", autouse=True)
+def set_deterministic_seed() -> None:
+    random.seed(TEST_GLOBAL_SEED)
+    Faker.seed(TEST_GLOBAL_SEED)
+    factory.random.reseed_random(TEST_GLOBAL_SEED)
 
 
 # =====================================================
