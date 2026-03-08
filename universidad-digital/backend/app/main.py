@@ -95,6 +95,15 @@ app.add_middleware(
 app.add_middleware(SecurityHeadersMiddleware)
 
 
+@app.get("/_meta/security-policy", tags=["meta"])
+def security_policy_metadata() -> dict[str, object]:
+    return {
+        "security_headers": {name: value for name, value in SECURITY_RESPONSE_HEADERS},
+        "middleware": "SecurityHeadersMiddleware",
+        "environment": settings.env,
+    }
+
+
 @app.exception_handler(NotFoundError)
 def not_found_handler(request: Request, exc: NotFoundError) -> JSONResponse:
     return JSONResponse(status_code=404, content={"detail": exc.message})

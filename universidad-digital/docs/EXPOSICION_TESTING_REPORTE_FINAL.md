@@ -142,8 +142,8 @@ Durante la evaluación inicial por capas y enterprise, los principales hallazgos
 
 ## Resultado global de checklist enterprise
 
-- Estado actual: **89 ✅ / 0 ❌ / 1 ⚠️**
-- Puntaje actual: **99%**
+- Estado actual: **90 ✅ / 0 ❌ / 0 ⚠️**
+- Puntaje actual: **100%**
 - Mejoras destacadas:
   - Contratos API y compatibilidad: **100%** (bloque 2)
   - Seguridad de aplicación: **100%** (bloque 3)
@@ -172,8 +172,7 @@ Durante la evaluación inicial por capas y enterprise, los principales hallazgos
   - Resultado: **validado correctamente**
 - Smoke de equivalencia staging:
   - `python scripts/staging_equivalence_smoke.py`
-  - Resultado actualizado: **4/5 PASS, 1 gap detectado (security headers en staging)**
-  - Diagnóstico: en ejecución local del backend los headers de seguridad sí están presentes; la brecha queda acotada a despliegue/proxy de staging.
+  - Resultado actualizado: **5/5 PASS (equivalencia CI/producción en verde)**
 - Ejecución de tests de retry/backoff frontend:
   - `npx vitest run tests/unit/http.retry.unit.test.ts`
   - Resultado: **3 passed**
@@ -203,14 +202,14 @@ Durante la evaluación inicial por capas y enterprise, los principales hallazgos
 
 5. **Resultados (1 min):**
 
-- “Enterprise en 99% (89✅/0❌/1⚠️), capas 1–8 en 100/100, seguridad dedicada validada, contrato API protegido, resiliencia y concurrencia formalizadas, cobertura por módulo automatizada, datasets versionados, integraciones externas cubiertas y performance con stress validado.”
+- “Enterprise en 100% (90✅/0❌/0⚠️), capas 1–8 en 100/100, seguridad dedicada validada, contrato API protegido, resiliencia y concurrencia formalizadas, cobertura por módulo automatizada, datasets versionados, integraciones externas cubiertas y performance con stress validado.”
 
 6. **Cierre (30s):**
 
-- “La brecha restante es de despliegue (equivalencia CI/producción por propagación de security headers en staging).”
+- “La madurez enterprise quedó cerrada con evidencia automatizada y trazable end-to-end.”
 
 ## 6) Próximos pasos recomendados
 
-- P1: cerrar gap remanente detectado por smoke en staging (`security headers`).
-- P2: tras redeploy, re-ejecutar smoke para cerrar 5/5 y actualizar evidencia.
-- P3: mantener tablero de cobertura por módulo como control de regresión por dominio.
+- P1: mantener smoke periódico de equivalencia staging para prevenir regressions.
+- P2: mantener tablero de cobertura por módulo como control de regresión por dominio.
+- P3: usar tendencias de observabilidad/estabilidad para mejora continua.

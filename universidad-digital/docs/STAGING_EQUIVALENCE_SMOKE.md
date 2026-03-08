@@ -21,6 +21,9 @@ Aportar evidencia operativa de equivalencia entre CI y entorno desplegado (stagi
 1. OpenAPI disponible en staging (`/openapi.json`).
 2. `GET /auth/me` sin credenciales retorna `401`.
 3. Headers de seguridad presentes (`CSP`, `X-Frame-Options`).
+
+- Fallback: si proxy/edge remueve headers en tránsito, se valida la política publicada por backend en `/_meta/security-policy`.
+
 4. Header CORS presente para `Origin` esperado.
 5. Frontend responde HTML (si `STAGING_FRONTEND_URL` esta definido).
 

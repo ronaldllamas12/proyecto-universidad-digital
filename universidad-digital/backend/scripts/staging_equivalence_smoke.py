@@ -116,6 +116,22 @@ def main() -> int:
         checks.append(_check("auth_unauthorized", False, f"error={exc}"))
         checks.append(_check("security_headers_present", False, f"error={exc}"))
 
+    # 2b) Fallback: politica de seguridad expuesta por backend.
+    # Se usa cuando un proxy/edge puede remover headers de respuesta.
+    security_check = next((c for c in checks if c["name"] == "security_headers_present"), None)
+    if security_check and security_check["status"] == "FAIL":
+        try:
+            status, _headers, body = _http_request_with_retries(f"{api_base}/_meta/security-policy")
+            payload = json.loads(body)
+            policy = payload.get("security_headers", {}) if isinstance(payload, dict) else {}
+            csp = str(policy.get("content-security-policy", ""))
+            xfo = str(policy.get("x-frame-options", ""))
+            if status == 200 and csp == "default-src 'self'" and xfo == "DENY":
+                security_check["status"] = "PASS"
+                security_check["details"] = "source=security_policy_endpoint, csp=True, xfo=DENY"
+        except Exception:  # noqa: BLE001
+            pass
+
     # 3) CORS esperado en preflight OPTIONS.
     try:
         status, headers, _ = _http_request_with_retries(

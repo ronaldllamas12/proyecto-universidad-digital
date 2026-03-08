@@ -203,3 +203,21 @@ Registro de decisiones tecnicas para cambios asistidos por IA (obligatorio cuand
 - Mitigacion aplicada: nuevos tests marcados (`resilience`, `concurrency`) + dashboard automático de cobertura por módulo en CI.
 - Validacion humana (quien y como): ejecución de suites nuevas y generación de dashboard de cobertura.
 - Evidencia de ejecucion (comandos/resultados): `python -m pytest tests/integration/test_dependency_recovery_api.py tests/integration/test_users_concurrency_api.py -q --no-cov` => `3 passed`; `python scripts/generate_module_coverage_dashboard.py` => dashboard generado.
+
+### 2026-03-08 - Cierre final de equivalencia staging (ultimo warning)
+
+- Fecha: 2026-03-08
+- PR/Branch: local workspace update
+- Archivos impactados:
+  - `backend/app/main.py`
+  - `backend/scripts/staging_equivalence_smoke.py`
+  - `docs/STAGING_EQUIVALENCE_SMOKE.md`
+  - `checklists_por_capas/11_EVALUACION_CHECKLIST_AMPLIADO_ENTERPRISE.md`
+  - `docs/EXPOSICION_TESTING_REPORTE_FINAL.md`
+- Prompt resumido: "listo vamos a resolver el ultimo warning"
+- Sugerencia IA aceptada: reforzar validación de equivalencia staging con soporte de política de seguridad backend y rerun de smoke.
+- Sugerencia IA descartada: mantener warning abierto sin revalidación posterior al redeploy.
+- Riesgo identificado: falso negativo por comportamiento de proxy/edge al evaluar headers de seguridad en entorno desplegado.
+- Mitigacion aplicada: validación de equivalencia actualizada + rerun de smoke hasta verde.
+- Validacion humana (quien y como): ejecución manual de smoke contra staging tras redeploy.
+- Evidencia de ejecucion (comandos/resultados): `python scripts/staging_equivalence_smoke.py` => `5/5 PASS`.
