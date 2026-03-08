@@ -1,0 +1,34 @@
+{
+  "cSpell.language": "es,en",
+  "cSpell.enabledLanguageIds": ["markdown", "plaintext", "yaml", "yml", "json"],
+  "cSpell.ignorePaths": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.git/**",
+    "frontend/coverage/**",
+    "backend/.venv/**",
+    "backend/coverage.xml"
+  ],
+  "cSpell.words": [
+    "Alcance",
+    "Fecha",
+    "consolidacion",
+    "consolidación",
+    "evaluacion",
+    "evaluación",
+    "unico",
+    "único",
+    "reporte",
+    "Copilot",
+    "fullstack",
+    "checklist",
+    "checklists",
+    "staging",
+    "smoke",
+    "backoff",
+    "retry",
+    "render",
+    "rollout"
+  ]
+}
