@@ -39,6 +39,23 @@ Alcance: consolidación final de la evaluación por capas y del checklist amplia
 14. Gobernanza de IA en testing: **100%**
 15. Release readiness (go/no-go): **100%**
 
+## Hallazgos de los checklists
+
+- Hallazgo 1: La cobertura de riesgo quedó cerrada en seguridad, contratos y autorización con suites dedicadas y trazables.
+- Hallazgo 2: Se formalizó resiliencia con política de retry/backoff en frontend y recuperación de dependencia en backend.
+- Hallazgo 3: Concurrencia de negocio ya cuenta con evidencia de validación en suite dedicada.
+- Hallazgo 4: La equivalencia CI/producción quedó validada con smoke de staging en verde (5/5 PASS).
+- Hallazgo 5: La cobertura por módulo dejó de ser solo global y ahora tiene tablero por dominio en CI.
+- Hallazgo 6: La gobernanza IA quedó auditable mediante log de decisiones de prompt y validación humana.
+- Hallazgo 7: El gate operativo de release (GO/NO-GO) está soportado por evidencia automatizada y documentación.
+
+### Riesgos residuales (bajos)
+
+- Riesgo 1: regresión de configuración en staging por cambios de infraestructura.
+- Mitigación: mantener ejecución periódica de `staging_equivalence_smoke.py` en CI.
+- Riesgo 2: deriva de cobertura en módulos críticos por cambios futuros.
+- Mitigación: usar `TEST_COVERAGE_BY_MODULE_DASHBOARD.md` como control en cada release.
+
 ## Evidencia clave consolidada
 
 - Seguridad dedicada: `backend/tests/integration/test_security_api.py`
