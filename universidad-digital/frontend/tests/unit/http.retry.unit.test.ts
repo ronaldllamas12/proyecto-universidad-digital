@@ -26,10 +26,11 @@ describe("http retry/backoff policy", () => {
 
     let adapterCalls = 0;
     http.defaults.adapter = async (config) => {
+      const retryConfig = config as typeof config & { __attempt?: number };
       adapterCalls += 1;
-      config.__attempt = (config.__attempt ?? 0) + 1;
+      retryConfig.__attempt = (retryConfig.__attempt ?? 0) + 1;
 
-      if (config.__attempt === 1) {
+      if (retryConfig.__attempt === 1) {
         return Promise.reject({ code: "ERR_NETWORK", config });
       }
 
