@@ -1,6 +1,16 @@
 [project]
 name = "universidad_digital_backend"
 version = "0.1.0"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "python-jose[cryptography]",
+    "passlib[bcrypt]",
+    "python-multipart",
+    "sqlalchemy",
+    "psycopg2-binary"
+]
+
 
 [tool.setuptools.packages.find]
 include = ["app*"]
