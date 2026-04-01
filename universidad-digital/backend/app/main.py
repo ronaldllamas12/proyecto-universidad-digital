@@ -83,11 +83,14 @@ allowed_origins = settings.cors_origins or [
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173","https://proyecto-universidad-digital.onrender.com",
-    "https://universidad-digital.onrender.com","https://proyecto-universidad-digital-backen.vercel.app","https://proyecto-universidad-digital-zj37.vercel.app"
+    "https://universidad-digital.onrender.com",
+    "https://proyecto-universidad-digital-backen.vercel.app",
+    "https://proyecto-universidad-digital-zj37.vercel.app"
 ]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
