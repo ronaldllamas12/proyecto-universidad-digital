@@ -11,8 +11,7 @@ class Base(DeclarativeBase):
 
 
 engine = create_engine(settings.db_url, pool_pre_ping=True, connect_args={
-        "prepare_threshold": None,
-        "statement_cache_size": 0
+        "prepare_threshold": None
     })
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, class_=Session)
 
