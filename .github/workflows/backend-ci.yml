@@ -3,16 +3,8 @@ name: Backend CI
 on:
   push:
     paths:
-<<<<<<< HEAD:.github/workflows/backend-ci.yml
-      - "universidad-digital/backend/**"
-      - ".github/workflows/backend-ci.yml"
-||||||| a830b99:universidad-digital/.github/workflows/backend-ci.yml
-      - "universidad-digital/backend/**"
-      - "universidad-digital/.github/workflows/backend-ci.yml"
-=======
       - "universidad-digital/universidad-digital/backend/**"
       - "universidad-digital/universidad-digital/.github/workflows/backend-ci.yml"
->>>>>>> 0018c4f25c5f81b76125516c64afb00d62728dca:universidad-digital/.github/workflows/backend-ci.yml
   pull_request:
     paths:
       - "universidad-digital/backend/**"
