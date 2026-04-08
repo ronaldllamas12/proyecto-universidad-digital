@@ -190,4 +190,4 @@ class TestEnrollmentFlow:
 
         assert enrolled_in_course, "No se encontró la matrícula creada"
 
-        print("✅ E2E completado correctamente")
+        print("E2E completado correctamente")

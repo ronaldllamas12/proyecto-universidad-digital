@@ -18,6 +18,9 @@ on:
 jobs:
   backend-quality:
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+      APP_JWT_SECRET: ci-test-secret-key
     defaults:
       run:
         working-directory: universidad-digital/backend
@@ -56,6 +59,8 @@ jobs:
 
   frontend-quality:
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
     defaults:
       run:
         working-directory: universidad-digital/frontend
@@ -78,6 +83,8 @@ jobs:
 
   test-maintainability:
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
     steps:
       - name: Checkout
         uses: actions/checkout@v4

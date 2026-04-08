@@ -14,6 +14,9 @@ on:
 jobs:
   test-backend:
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+      APP_JWT_SECRET: ci-test-secret-key
 
     steps:
       - name: Checkout
