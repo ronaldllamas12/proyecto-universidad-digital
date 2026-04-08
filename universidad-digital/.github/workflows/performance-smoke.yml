@@ -3,12 +3,12 @@ name: Performance Profiles
 on:
   push:
     paths:
-      - "backend/**"
-      - ".github/workflows/performance-smoke.yml"
+      - "universidad-digital/backend/**"
+      - "universidad-digital/.github/workflows/performance-smoke.yml"
   pull_request:
     paths:
-      - "backend/**"
-      - ".github/workflows/performance-smoke.yml"
+      - "universidad-digital/backend/**"
+      - "universidad-digital/.github/workflows/performance-smoke.yml"
   workflow_dispatch:
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: backend
+        working-directory: universidad-digital/backend
 
     steps:
       - name: Checkout
@@ -50,6 +50,6 @@ jobs:
         with:
           name: performance-report
           path: |
-            backend/performance-fast-report.txt
-            backend/performance-full-report.txt
+            universidad-digital/backend/performance-fast-report.txt
+            universidad-digital/backend/performance-full-report.txt
           if-no-files-found: warn

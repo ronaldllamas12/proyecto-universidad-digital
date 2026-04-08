@@ -19,7 +19,7 @@ jobs:
           python-version: "3.12"
 
       - name: Run staging equivalence smoke
-        working-directory: backend
+        working-directory: universidad-digital/backend
         env:
           STAGING_API_BASE_URL: ${{ secrets.STAGING_API_BASE_URL }}
           STAGING_FRONTEND_URL: ${{ secrets.STAGING_FRONTEND_URL }}
@@ -31,4 +31,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: staging-equivalence-report
-          path: backend/staging-equivalence-report.md
+          path: universidad-digital/backend/staging-equivalence-report.md

@@ -23,16 +23,16 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: universidad-digital/frontend/package-lock.json
 
       - name: Install backend dependencies
-        working-directory: backend
+        working-directory: universidad-digital/backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Install frontend dependencies
-        working-directory: frontend
+        working-directory: universidad-digital/frontend
         run: npm ci
 
       - name: Run repeated backend tests
@@ -43,7 +43,7 @@ jobs:
           failed=0
           for i in 1 2 3; do
             echo "Backend run #$i"
-            if ! (cd backend && python -m pytest -q); then
+            if ! (cd universidad-digital/backend && python -m pytest -q); then
               failed=$((failed+1))
             fi
           done
@@ -60,7 +60,7 @@ jobs:
           failed=0
           for i in 1 2 3; do
             echo "Frontend run #$i"
-            if ! (cd frontend && npx vitest run --coverage); then
+            if ! (cd universidad-digital/frontend && npx vitest run --coverage); then
               failed=$((failed+1))
             fi
           done

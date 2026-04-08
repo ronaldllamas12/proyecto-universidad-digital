@@ -3,18 +3,18 @@ name: Test Maintainability
 on:
   push:
     paths:
-      - "backend/tests/**"
-      - "frontend/tests/**"
-      - "frontend/cypress/**"
-      - ".github/workflows/test-maintainability.yml"
-      - ".jscpd.json"
+      - "universidad-digital/backend/tests/**"
+      - "universidad-digital/frontend/tests/**"
+      - "universidad-digital/frontend/cypress/**"
+      - "universidad-digital/.github/workflows/test-maintainability.yml"
+      - "universidad-digital/.jscpd.json"
   pull_request:
     paths:
-      - "backend/tests/**"
-      - "frontend/tests/**"
-      - "frontend/cypress/**"
-      - ".github/workflows/test-maintainability.yml"
-      - ".jscpd.json"
+      - "universidad-digital/backend/tests/**"
+      - "universidad-digital/frontend/tests/**"
+      - "universidad-digital/frontend/cypress/**"
+      - "universidad-digital/.github/workflows/test-maintainability.yml"
+      - "universidad-digital/.jscpd.json"
 
 jobs:
   maintainability:
@@ -38,7 +38,7 @@ jobs:
         run: python -m pip install --upgrade pip radon
 
       - name: Complexity report (backend tests)
-        run: radon cc backend/tests -s -a
+        run: radon cc universidad-digital/backend/tests -s -a
 
       - name: Duplication report (frontend tests + cypress)
-        run: npx jscpd@4.0.5 --config .jscpd.json
+        run: npx jscpd@4.0.5 --config universidad-digital/.jscpd.json

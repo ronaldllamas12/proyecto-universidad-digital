@@ -3,23 +3,23 @@ name: Quality Gate Fullstack
 on:
   push:
     paths:
-      - "backend/**"
-      - "frontend/**"
-      - "checklists_por_capas/**"
-      - ".github/workflows/quality-gate-fullstack.yml"
+      - "universidad-digital/backend/**"
+      - "universidad-digital/frontend/**"
+      - "universidad-digital/checklists_por_capas/**"
+      - "universidad-digital/.github/workflows/quality-gate-fullstack.yml"
   pull_request:
     paths:
-      - "backend/**"
-      - "frontend/**"
-      - "checklists_por_capas/**"
-      - ".github/workflows/quality-gate-fullstack.yml"
+      - "universidad-digital/backend/**"
+      - "universidad-digital/frontend/**"
+      - "universidad-digital/checklists_por_capas/**"
+      - "universidad-digital/.github/workflows/quality-gate-fullstack.yml"
 
 jobs:
   backend-quality:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: universidad-digital/backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,13 +51,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage-by-module
-          path: docs/TEST_COVERAGE_BY_MODULE_DASHBOARD.md
+          path: universidad-digital/docs/TEST_COVERAGE_BY_MODULE_DASHBOARD.md
 
   frontend-quality:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: universidad-digital/frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: universidad-digital/frontend/package-lock.json
 
       - name: Install frontend dependencies
         run: npm ci
@@ -95,10 +95,10 @@ jobs:
         run: python -m pip install --upgrade pip radon
 
       - name: Complexity report (backend tests)
-        run: radon cc backend/tests -s -a
+        run: radon cc universidad-digital/backend/tests -s -a
 
       - name: Duplication report (frontend tests + cypress)
-        run: npx jscpd@4.0.5 --config .jscpd.json
+        run: npx jscpd@4.0.5 --config universidad-digital/.jscpd.json
 
   quality-gate:
     runs-on: ubuntu-latest
