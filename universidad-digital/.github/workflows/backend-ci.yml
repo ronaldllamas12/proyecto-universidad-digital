@@ -9,6 +9,7 @@ on:
     paths:
       - "universidad-digital/backend/**"
       - "universidad-digital/.github/workflows/backend-ci.yml"
+  workflow_dispatch:
 
 jobs:
   test-backend:
