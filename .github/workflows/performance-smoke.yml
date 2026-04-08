@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - "universidad-digital/backend/**"
-      - "universidad-digital/.github/workflows/performance-smoke.yml"
+      - ".github/workflows/performance-smoke.yml"
   pull_request:
     paths:
       - "universidad-digital/backend/**"
-      - "universidad-digital/.github/workflows/performance-smoke.yml"
+      - ".github/workflows/performance-smoke.yml"
   workflow_dispatch:
 
 jobs:

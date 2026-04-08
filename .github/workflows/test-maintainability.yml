@@ -6,15 +6,16 @@ on:
       - "universidad-digital/backend/tests/**"
       - "universidad-digital/frontend/tests/**"
       - "universidad-digital/frontend/cypress/**"
-      - "universidad-digital/.github/workflows/test-maintainability.yml"
+      - ".github/workflows/test-maintainability.yml"
       - "universidad-digital/.jscpd.json"
   pull_request:
     paths:
       - "universidad-digital/backend/tests/**"
       - "universidad-digital/frontend/tests/**"
       - "universidad-digital/frontend/cypress/**"
-      - "universidad-digital/.github/workflows/test-maintainability.yml"
+      - ".github/workflows/test-maintainability.yml"
       - "universidad-digital/.jscpd.json"
+  workflow_dispatch:
 
 jobs:
   maintainability:

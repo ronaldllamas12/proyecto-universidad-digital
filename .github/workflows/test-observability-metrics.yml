@@ -160,8 +160,8 @@ jobs:
           backend_pytest_runtime = parse_pytest_runtime("backend-test.log")
           frontend_vitest_runtime = parse_pytest_runtime("frontend-test.log")
 
-          backend_domain_coverage = parse_backend_coverage("backend/coverage.xml")
-          frontend_domain_coverage = parse_frontend_coverage("frontend/coverage/lcov.info")
+          backend_domain_coverage = parse_backend_coverage("universidad-digital/backend/coverage.xml")
+          frontend_domain_coverage = parse_frontend_coverage("universidad-digital/frontend/coverage/lcov.info")
 
           payload = {
               "timestamp_utc": dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",

@@ -4,11 +4,12 @@ on:
   push:
     paths:
       - "universidad-digital/frontend/**"
-      - "universidad-digital/.github/workflows/frontend-ci.yml"
+      - ".github/workflows/frontend-ci.yml"
   pull_request:
     paths:
       - "universidad-digital/frontend/**"
-      - "universidad-digital/.github/workflows/frontend-ci.yml"
+      - ".github/workflows/frontend-ci.yml"
+  workflow_dispatch:
 
 jobs:
   test-frontend:

@@ -6,13 +6,14 @@ on:
       - "universidad-digital/backend/**"
       - "universidad-digital/frontend/**"
       - "universidad-digital/checklists_por_capas/**"
-      - "universidad-digital/.github/workflows/quality-gate-fullstack.yml"
+      - ".github/workflows/quality-gate-fullstack.yml"
   pull_request:
     paths:
       - "universidad-digital/backend/**"
       - "universidad-digital/frontend/**"
       - "universidad-digital/checklists_por_capas/**"
-      - "universidad-digital/.github/workflows/quality-gate-fullstack.yml"
+      - ".github/workflows/quality-gate-fullstack.yml"
+  workflow_dispatch:
 
 jobs:
   backend-quality:
