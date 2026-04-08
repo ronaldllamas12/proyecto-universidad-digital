@@ -1,6 +1,6 @@
 # tests/unit/test_security.py
 import pytest
-from jose import jwt, JWTError
+from jose import JWTError
 
 from app.core.security import (
     hash_password,

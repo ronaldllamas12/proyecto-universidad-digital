@@ -30,7 +30,7 @@ def list_subjects(db: Session) -> list[Subject]:
         )
         .outerjoin(
             Enrollment,
-            (Enrollment.subject_id == Subject.id) & (Enrollment.is_active == True),
+            (Enrollment.subject_id == Subject.id) & Enrollment.is_active,
         )
         .group_by(Subject.id)
         .order_by(Subject.id)

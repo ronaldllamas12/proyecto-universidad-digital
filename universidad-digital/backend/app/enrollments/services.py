@@ -5,7 +5,11 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import ConflictError, NotFoundError
 from app.enrollments.models import Enrollment
-from app.enrollments.schemas import EnrollmentCreate, EnrollmentUpdate,EnrollmentResponse
+from app.enrollments.schemas import (
+    EnrollmentCreate,
+    EnrollmentResponse,
+    EnrollmentUpdate,
+)
 from app.periods.models import AcademicPeriod
 from app.subjects.models import Subject
 from app.users.models import User
@@ -42,12 +46,10 @@ def create_enrollment(db: Session, data: EnrollmentCreate, actor: User) -> Enrol
     )
 
     if existing:
-        
-        
         raise ConflictError(
             "El estudiante ya está matriculado en esta materia para este periodo"
         )
-        
+
     enrollment = Enrollment(
         user_id=data.user_id,
         subject_id=data.subject_id,
@@ -58,10 +60,6 @@ def create_enrollment(db: Session, data: EnrollmentCreate, actor: User) -> Enrol
     db.commit()
     db.refresh(enrollment)
     return _enrollment_to_response(db, enrollment)
-
-
-from sqlalchemy import select
-from app.enrollments.schemas import EnrollmentResponse
 
 def list_enrollments(db: Session, user: User) -> list[EnrollmentResponse]:
     """Lista inscripciones respetando ownership."""
@@ -81,8 +79,6 @@ def get_enrollment(db: Session, enrollment_id: int, user: User) -> EnrollmentRes
     if not enrollment:
         raise NotFoundError("Inscripción no encontrada.")
     return _enrollment_to_response(db, enrollment)
-
-
 
 def update_enrollment(
     db: Session, enrollment_id: int, data: EnrollmentUpdate, user: User
@@ -107,8 +103,6 @@ def update_enrollment(
     db.refresh(enrollment)
 
     return _enrollment_to_response(db, enrollment)
-
-
 def deactivate_enrollment(
     db: Session, enrollment_id: int, user: User
 ) -> EnrollmentResponse:

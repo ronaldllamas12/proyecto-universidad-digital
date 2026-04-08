@@ -1,5 +1,5 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
-from sqlalchemy import func, true
 
 from app.users.models import User
 from app.subjects.models import Subject
@@ -15,13 +15,13 @@ from app.grades.models import Grade
 def get_admin_dashboard(db: Session):
 
     # Total usuarios activos
-    total_users = db.query(func.count(User.id)).filter(User.is_active == True).scalar()
+    total_users = db.query(func.count(User.id)).filter(User.is_active).scalar()
 
     #  Total estudiantes activos
     total_students = (
         db.query(func.count(User.id))
         .join(User.roles)
-        .filter(Role.name == "Estudiante", User.is_active == True)
+        .filter(Role.name == "Estudiante", User.is_active)
         .scalar()
     )
 
@@ -29,7 +29,7 @@ def get_admin_dashboard(db: Session):
     total_teachers = (
         db.query(func.count(User.id.distinct()))
         .join(User.roles)
-        .filter(Role.name == "Docente", User.is_active == True)
+        .filter(Role.name == "Docente", User.is_active)
         .scalar()
     )
 
@@ -38,18 +38,18 @@ def get_admin_dashboard(db: Session):
 
     # Materias inactivas
     inactive_subjects = (
-        db.query(func.count(Subject.id)).filter(Subject.is_active == False).scalar()
+        db.query(func.count(Subject.id)).filter(~Subject.is_active).scalar()
     )
 
     #  Periodos activos
     active_periods = (
         db.query(func.count(AcademicPeriod.id))
-        .filter(AcademicPeriod.is_active == True)
+        .filter(AcademicPeriod.is_active)
         .scalar()
     )
     total_enrollments = (
         db.query(func.count(Enrollment.id))
-        .filter(Enrollment.is_active == True)
+        .filter(Enrollment.is_active)
         .scalar()
     )
 
@@ -73,7 +73,7 @@ def get_teacher_dashboard(db: Session, current_user):
     # Inscripciones donde el docente está asignado (teacher_id)
     enrollments = (
         db.query(Enrollment)
-        .filter(Enrollment.teacher_id == current_user.id, Enrollment.is_active == True)
+        .filter(Enrollment.teacher_id == current_user.id, Enrollment.is_active)
         .all()
     )
     enrollment_ids = [e.id for e in enrollments]
@@ -82,13 +82,13 @@ def get_teacher_dashboard(db: Session, current_user):
     active_periods = (
         (
             db.query(func.count(AcademicPeriod.id))
-            .filter(AcademicPeriod.id.in_(period_ids), AcademicPeriod.is_active == True)
+            .filter(AcademicPeriod.id.in_(period_ids), AcademicPeriod.is_active)
             .scalar()
         )
         if period_ids
         else 0
     )
-    total_users = db.query(func.count(User.id)).filter(User.is_active == True).scalar()
+    total_users = db.query(func.count(User.id)).filter(User.is_active).scalar()
 
     grades_count = (
         (
@@ -118,7 +118,7 @@ def get_teacher_dashboard(db: Session, current_user):
 def get_student_dashboard(db: Session, current_user):
     enrollments = (
         db.query(Enrollment)
-        .filter(Enrollment.user_id == current_user.id, Enrollment.is_active == True)
+        .filter(Enrollment.user_id == current_user.id, Enrollment.is_active)
         .all()
     )
     enrollment_ids = [e.id for e in enrollments]
@@ -126,7 +126,7 @@ def get_student_dashboard(db: Session, current_user):
     active_periods = (
         (
             db.query(func.count(AcademicPeriod.id))
-            .filter(AcademicPeriod.id.in_(period_ids), AcademicPeriod.is_active == True)
+            .filter(AcademicPeriod.id.in_(period_ids), AcademicPeriod.is_active)
             .scalar()
         )
         if period_ids
