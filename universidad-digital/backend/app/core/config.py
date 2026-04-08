@@ -1,9 +1,10 @@
-import os
+""" Configuración centralizada para la aplicación."""
 import json
-from typing import Annotated, Any, Literal
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic_settings import NoDecode
+import os
+from typing import Any, Literal
+
 from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -16,7 +17,7 @@ class Settings(BaseSettings):
         enable_decoding=False,
     )
 
-    env: str = Field(default="development")
+    env: str = Field(default="development", description="Environment name")
 
     # fallback si no existe variable
     database_url: str = Field(
@@ -36,12 +37,14 @@ class Settings(BaseSettings):
         "none" if env == "production" else "lax"
     )
 
-    cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    cors_origins: list[str] = Field(default_factory=list)
     auto_create_tables: bool = True
 
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: Any) -> list[str]:
+        """ Permite configurar CORS_ORIGINS como una lista JSON, 
+        texto separado por comas o una lista real."""
         if value is None:
             return []
 
@@ -66,6 +69,7 @@ class Settings(BaseSettings):
     @field_validator("cookie_samesite", mode="before")
     @classmethod
     def validate_cookie_samesite(cls, value: Any) -> Literal["lax", "strict", "none"]:
+        """ Valida que APP_COOKIE_SAMESITE sea lax, strict o none, sin importar mayúsculas o espacios."""
         normalized = str(value).strip().lower()
         allowed = {"lax", "strict", "none"}
         if normalized not in allowed:
@@ -99,7 +103,7 @@ class Settings(BaseSettings):
 
     @property
     def is_production(self) -> bool:
-        return self.env.lower() == "production"
+        return str(self.env).lower() == "production"
 
 
 settings = Settings()

@@ -92,7 +92,17 @@ const LogoutIcon = () => (
   </svg>
 );
 
-export function DashboardLayout({ children }: { children: ReactNode }) {
+type DashboardLayoutProps = {
+  children: ReactNode;
+  showSidebar?: boolean;
+  emptySidebar?: boolean;
+};
+
+export function DashboardLayout({
+  children,
+  showSidebar = true,
+  emptySidebar = false,
+}: DashboardLayoutProps) {
   const { user, logout } = useAuth();
   const roles = user?.roles ?? [];
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -103,15 +113,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="app-dashboard">
       <header className="dashboard-header-bar" role="banner">
         <div className="dashboard-header-bar__brand">
-          <button
-            type="button"
-            className="dashboard-menu-toggle"
-            onClick={() => setSidebarOpen((o) => !o)}
-            aria-label={sidebarOpen ? "Cerrar menú" : "Abrir menú"}
-            aria-expanded={sidebarOpen}
-          >
-            {sidebarOpen ? <CloseIcon /> : <MenuIcon />}
-          </button>
+          {showSidebar ? (
+            <button
+              type="button"
+              className="dashboard-menu-toggle"
+              onClick={() => setSidebarOpen((o) => !o)}
+              aria-label={sidebarOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={sidebarOpen}
+            >
+              {sidebarOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
+          ) : null}
           <div className="dashboard-header-bar__brand-icon" aria-hidden>
             U
           </div>
@@ -131,159 +143,167 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <div
-        className={`dashboard-sidebar-overlay ${sidebarOpen ? "is-open" : ""}`}
-        aria-hidden="true"
-        onClick={closeSidebar}
-      />
+      {showSidebar ? (
+        <div
+          className={`dashboard-sidebar-overlay ${sidebarOpen ? "is-open" : ""}`}
+          aria-hidden="true"
+          onClick={closeSidebar}
+        />
+      ) : null}
 
-      <nav
-        className={`dashboard-sidebar ${sidebarOpen ? "is-open" : ""}`}
-        aria-label="Menú principal"
-      >
-        <div className="dashboard-sidebar__header">
-          <div className="dashboard-sidebar__title"> Menu de Navegación</div>
-        </div>
-        <ul className="dashboard-sidebar__nav">
-          {roles.includes("Administrador") && (
-            <>
-              <li>
-                <NavLink
-                  to="/admin"
-                  className="dashboard-sidebar__link"
-                  end
-                  onClick={closeSidebar}
+      {showSidebar ? (
+        <nav
+          className={`dashboard-sidebar ${sidebarOpen ? "is-open" : ""}`}
+          aria-label="Menú principal"
+        >
+          <div className="dashboard-sidebar__header">
+            <div className="dashboard-sidebar__title"> Menu de Navegación</div>
+          </div>
+          <ul
+            className={`dashboard-sidebar__nav ${emptySidebar ? "dashboard-sidebar__nav--empty" : ""}`.trim()}
+          >
+            {!emptySidebar && roles.includes("Administrador") && (
+              <>
+                <li>
+                  <NavLink
+                    to="/admin"
+                    className="dashboard-sidebar__link"
+                    end
+                    onClick={closeSidebar}
+                  >
+                    <ChartIcon /> Dashboard Admin
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/admin/users"
+                    className="dashboard-sidebar__link"
+                    onClick={closeSidebar}
+                  >
+                    <UsersIcon /> Crear Usuarios
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/admin/subjects"
+                    className="dashboard-sidebar__link"
+                    onClick={closeSidebar}
+                  >
+                    <BookIcon />
+                    Crear Materias
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/admin/periods"
+                    className="dashboard-sidebar__link"
+                    onClick={closeSidebar}
+                  >
+                    <CalendarIcon /> Crear Periodos
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/admin/enrollments"
+                    className="dashboard-sidebar__link"
+                    onClick={closeSidebar}
+                  >
+                    <ClipboardIcon /> Crear Inscripciones
+                  </NavLink>
+                </li>
+              </>
+            )}
+            {!emptySidebar && roles.includes("Docente") && (
+              <>
+                <li>
+                  <NavLink
+                    to="/teacher"
+                    className="dashboard-sidebar__link"
+                    end
+                    onClick={closeSidebar}
+                  >
+                    <ChartIcon /> Dashboard Docente
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/teacher/grades"
+                    className="dashboard-sidebar__link"
+                    onClick={closeSidebar}
+                  >
+                    <GradeIcon /> Registrar Calificaciones
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/teacher/enrollments"
+                    className="dashboard-sidebar__link"
+                    onClick={closeSidebar}
+                  >
+                    <ClipboardIcon /> Estudiantes enrolados
+                  </NavLink>
+                </li>
+              </>
+            )}
+            {!emptySidebar && roles.includes("Estudiante") && (
+              <>
+                <li>
+                  <NavLink
+                    to="/student"
+                    className="dashboard-sidebar__link"
+                    end
+                    onClick={closeSidebar}
+                  >
+                    <ChartIcon /> Dashboard estudiante
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/student/subjects"
+                    className="dashboard-sidebar__link"
+                    onClick={closeSidebar}
+                  >
+                    <BookIcon /> Ver Materias
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/student/enrollments"
+                    className="dashboard-sidebar__link"
+                    onClick={closeSidebar}
+                  >
+                    <ClipboardIcon /> Ver Inscripciones
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/student/grades"
+                    className="dashboard-sidebar__link"
+                    onClick={closeSidebar}
+                  >
+                    <GradeIcon /> Ver Calificaciones
+                  </NavLink>
+                </li>
+              </>
+            )}
+            {!emptySidebar ? (
+              <li className="dashboard-sidebar__logout-item">
+                <button
+                  type="button"
+                  className="dashboard-sidebar__link dashboard-sidebar__logout"
+                  onClick={() => void logout()}
+                  aria-label="Cerrar sesión"
+                  title="Cerrar sesión"
                 >
-                  <ChartIcon /> Dashboard Admin
-                </NavLink>
+                  <LogoutIcon /> Salir
+                </button>
               </li>
-              <li>
-                <NavLink
-                  to="/admin/users"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <UsersIcon /> Crear Usuarios
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/admin/subjects"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <BookIcon />
-                  Crear Materias
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/admin/periods"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <CalendarIcon /> Crear Periodos
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/admin/enrollments"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <ClipboardIcon /> Crear Inscripciones
-                </NavLink>
-              </li>
-            </>
-          )}
-          {roles.includes("Docente") && (
-            <>
-              <li>
-                <NavLink
-                  to="/teacher"
-                  className="dashboard-sidebar__link"
-                  end
-                  onClick={closeSidebar}
-                >
-                  <ChartIcon /> Dashboard Docente
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/teacher/grades"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <GradeIcon /> Registrar Calificaciones
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/teacher/enrollments"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <ClipboardIcon /> Estudiantes enrolados
-                </NavLink>
-              </li>
-            </>
-          )}
-          {roles.includes("Estudiante") && (
-            <>
-              <li>
-                <NavLink
-                  to="/student"
-                  className="dashboard-sidebar__link"
-                  end
-                  onClick={closeSidebar}
-                >
-                  <ChartIcon /> Dashboard estudiante
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/student/subjects"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <BookIcon /> Ver Materias
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/student/enrollments"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <ClipboardIcon /> Ver Inscripciones
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/student/grades"
-                  className="dashboard-sidebar__link"
-                  onClick={closeSidebar}
-                >
-                  <GradeIcon /> Ver Calificaciones
-                </NavLink>
-              </li>
-            </>
-          )}
-          <li className="dashboard-sidebar__logout-item">
-            <button
-              type="button"
-              className="dashboard-sidebar__link dashboard-sidebar__logout"
-              onClick={() => void logout()}
-              aria-label="Cerrar sesión"
-              title="Cerrar sesión"
-            >
-              <LogoutIcon /> Salir
-            </button>
-          </li>
-        </ul>
-      </nav>
+            ) : null}
+          </ul>
+        </nav>
+      ) : null}
 
-      <main className="dashboard-main" id="main-content">
+      <main className={`dashboard-main ${showSidebar ? "" : "dashboard-main--full"}`.trim()} id="main-content">
         {children}
       </main>
     </div>

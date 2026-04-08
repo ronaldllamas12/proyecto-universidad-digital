@@ -2,11 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from app.core.database import Base
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
-
-from app.core.database import Base
-from app.enrollments.models import Enrollment
 
 
 class User(Base):
@@ -26,19 +24,23 @@ class User(Base):
     enrollments = relationship(
         "Enrollment",
         back_populates="user",
-        foreign_keys=[Enrollment.user_id],
+        foreign_keys="Enrollment.user_id",
     )
 
     @validates("email")
     def _normalize_email(self, _: str, value: str) -> str:
         email = value.strip().lower()
-        if not email:
+        if email := value.strip().lower():
+            return email
+        else:
             raise ValueError("El email es obligatorio.")
-        return email
+        
 
     @validates("full_name")
     def _normalize_full_name(self, _: str, value: str) -> str:
         name = value.strip()
-        if not name:
+        if name:= value.strip():
+            return name
+        else:
             raise ValueError("El nombre es obligatorio.")
-        return name
+        

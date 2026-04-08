@@ -3,11 +3,9 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from app.core.config import settings
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-
-from app.core.config import settings
-
 
 _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -24,17 +22,41 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return _pwd_context.verify(password, hashed_password)
 
 
-def create_access_token(subject: str, jti: str, expires_minutes: int | None = None) -> str:
-    """Crea un JWT firmado."""
+def create_access_token(
+    subject: str,
+    jti: str | None = None,
+    roles: list[str] | None = None,
+) -> str:
+    """Crea un JWT"""
 
-    expires = datetime.now(timezone.utc) + timedelta(
-        minutes=expires_minutes or settings.jwt_expiration_minutes
-    )
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.jwt_expiration_minutes )
+
+    payload = {
+        "sub": subject,
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+    }
+
+    if jti:
+        payload["jti"] = jti
+
+    if roles:
+        payload["roles"] = roles  
     if not settings.jwt_secret:
         raise RuntimeError("APP_JWT_SECRET no configurado.")
-    payload: dict[str, Any] = {"sub": subject, "jti": jti, "exp": expires}
+
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
+
+def create_token(
+    subject: str,
+    jti: str | None = None,
+    roles: list[str] | None = None,
+) -> str:
+    """Compatibilidad con el nombre anterior de la función."""
+
+    return create_access_token(subject=subject, jti=jti, roles=roles)
 
 def decode_access_token(token: str) -> dict[str, Any]:
     """Decodifica un JWT y retorna su payload."""
@@ -45,4 +67,5 @@ def decode_access_token(token: str) -> dict[str, Any]:
 
 
 def is_jwt_error(exc: Exception) -> bool:
+    """ Verifica si una excepción es un error de JWT."""
     return isinstance(exc, JWTError)

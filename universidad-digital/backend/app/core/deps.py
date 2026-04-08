@@ -21,8 +21,7 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def get_current_user_dep(
-    request: Request, db: Session = Depends(get_db)
-) -> User:
+    request: Request, db: Session = Depends(get_db)) -> User:
     """Resuelve el usuario autenticado para dependencias."""
     return get_current_user(db, request)
 

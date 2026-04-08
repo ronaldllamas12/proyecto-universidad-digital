@@ -21,6 +21,7 @@ import { useAuth } from "../hooks/useAuth";
 import { AdminLayout } from "../layouts/AdminLayout";
 import { StudentLayout } from "../layouts/StudentLayout";
 import { DocenteLayout } from "../layouts/DocenteLayout";
+import { DashboardLayout } from "../layouts/DashboardLayout";
 import { UsersPageFilter } from "../pages/admin/UsersFilter";
 import { SubjectsListFilter } from "../pages/admin/subjectsFilters";
 import { TeacherSubjectsPage } from "../pages/teacher/TeacherSubject";
@@ -103,6 +104,39 @@ export function AppRoutes() {
         <Route path="subjects" element={<TeacherSubjectsPage />} />
         <Route path="grades/Filter" element={<TeacherGradesFilters />} />
       </Route>
+
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute roles={["Administrador"]}>
+            <DashboardLayout emptySidebar>
+              <NotFoundPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/student/*"
+        element={
+          <ProtectedRoute roles={["Estudiante"]}>
+            <DashboardLayout emptySidebar>
+              <NotFoundPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/teacher/*"
+        element={
+          <ProtectedRoute roles={["Docente"]}>
+            <DashboardLayout emptySidebar>
+              <NotFoundPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
