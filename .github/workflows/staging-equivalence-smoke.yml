@@ -18,7 +18,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Skip when staging secrets are missing
+        if: ${{ secrets.STAGING_API_BASE_URL == '' }}
+        run: echo "Skipping staging smoke: STAGING_API_BASE_URL is not configured."
+
       - name: Run staging equivalence smoke
+        if: ${{ secrets.STAGING_API_BASE_URL != '' }}
         working-directory: universidad-digital/backend
         env:
           STAGING_API_BASE_URL: ${{ secrets.STAGING_API_BASE_URL }}
@@ -28,6 +33,7 @@ jobs:
           python scripts/staging_equivalence_smoke.py
 
       - name: Upload staging equivalence report
+        if: ${{ secrets.STAGING_API_BASE_URL != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: staging-equivalence-report
