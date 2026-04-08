@@ -61,7 +61,7 @@ describe("Páginas de error", () => {
 
       expect(screen.getByRole("heading", { name: "404" })).toBeInTheDocument();
       expect(
-        screen.getByText(/la página solicitada no existe/i),
+        screen.getByText(/la p[aá]gina solicitada no existe/i),
       ).toBeInTheDocument();
     });
 
