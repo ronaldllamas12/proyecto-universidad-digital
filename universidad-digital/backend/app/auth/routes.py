@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from contextlib import suppress
-
 from app.auth.schemas import (ForgotPasswordRequest, ForgotPasswordResponse,
                               LoginRequest, MessageResponse,
                               ResetPasswordRequest, TokenResponse)
@@ -11,7 +9,6 @@ from app.auth.services import (authenticate_user,
                                reset_password_with_token, revoke_token)
 from app.core.config import settings
 from app.core.deps import get_current_user_dep, get_db
-from app.core.errors import UnauthorizedError
 from app.users.schemas import UserResponse
 from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.orm import Session
@@ -75,9 +72,12 @@ def logout_endpoint(
     """
 
     if token := request.cookies.get(settings.cookie_name):
-        with suppress(UnauthorizedError):
+        try:
             jti, expires_at = extract_token_data(token)
             revoke_token(db, jti, expires_at)
+        except Exception:  # noqa: BLE001
+            # No queremos romper el logout por errores de revocación
+            pass
 
     response = Response(status_code=status.HTTP_204_NO_CONTENT)
     response.delete_cookie(settings.cookie_name)
