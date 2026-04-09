@@ -26,11 +26,14 @@ def create_access_token(
     subject: str,
     jti: str | None = None,
     roles: list[str] | None = None,
+    expires_minutes: int | None = None,
+    extra_claims: dict[str, Any] | None = None,
 ) -> str:
     """Crea un JWT"""
 
     expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.jwt_expiration_minutes )
+        minutes=expires_minutes or settings.jwt_expiration_minutes
+    )
 
     payload = {
         "sub": subject,
@@ -42,7 +45,11 @@ def create_access_token(
         payload["jti"] = jti
 
     if roles:
-        payload["roles"] = roles  
+        payload["roles"] = roles
+
+    if extra_claims:
+        payload.update(extra_claims)
+
     if not settings.jwt_secret:
         raise RuntimeError("APP_JWT_SECRET no configurado.")
 

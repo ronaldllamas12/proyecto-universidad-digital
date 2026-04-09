@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     jwt_secret: str | None = None
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60
+    password_reset_token_expiration_minutes: int = 15
 
     cookie_name: str = "access_token"
     cookie_secure: bool = True if env == "production" else False
