@@ -1,7 +1,11 @@
 import axios from "axios";
 import { getAuthToken } from "../auth/token";
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
+const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+const fallbackApiBaseUrl = import.meta.env.DEV
+  ? "http://127.0.0.1:8000"
+  : "https://universidad-digital.onrender.com";
+const apiBaseUrl = (configuredApiBaseUrl || fallbackApiBaseUrl).replace(/\/+$/, "");
 
 let onUnauthorized: (() => void) | null = null;
 
