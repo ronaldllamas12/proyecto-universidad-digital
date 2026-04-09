@@ -94,3 +94,34 @@ Pasos:
 - Render: usar variable del servicio frontend `VITE_API_BASE_URL=https://<tu-backend>.onrender.com`.
 
 Así puedes abrir localmente en `localhost` y también tener producción en Render al mismo tiempo.
+
+### CD automatico (GitHub Actions -> Render + Vercel)
+
+Se agrego el workflow `.github/workflows/cd-render.yml` para hacer despliegue continuo:
+
+- Backend en Render
+- Frontend en Vercel
+
+Funcionamiento:
+
+1. Se ejecuta cuando termina exitosamente `Quality Gate Fullstack` en rama `main`.
+2. También se puede lanzar manualmente con `workflow_dispatch`.
+3. Dispara deploy de backend (Render) y frontend (Vercel) mediante deploy hooks.
+
+Configura estos secretos en GitHub (Settings -> Secrets and variables -> Actions):
+
+- `RENDER_DEPLOY_HOOK_BACKEND`
+- `VERCEL_DEPLOY_HOOK_FRONTEND`
+
+Para obtener cada hook:
+
+1. Backend (Render): abrir el servicio backend en Render.
+2. En Render ir a `Settings` -> `Deploy Hook`, crear hook y copiar URL.
+3. Guardar la URL en GitHub con nombre `RENDER_DEPLOY_HOOK_BACKEND`.
+4. Frontend (Vercel): abrir el proyecto frontend en Vercel.
+5. En Vercel ir a `Settings` -> `Git` -> `Deploy Hooks`, crear hook y copiar URL.
+6. Guardar la URL en GitHub con nombre `VERCEL_DEPLOY_HOOK_FRONTEND`.
+
+Recomendado:
+
+- Configurar `Environment` llamado `production` en GitHub con protection rules (por ejemplo, required reviewers) para controlar liberaciones.

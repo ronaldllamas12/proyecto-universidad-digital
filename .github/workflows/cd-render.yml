@@ -1,0 +1,52 @@
+name: CD Deploy
+
+on:
+  workflow_run:
+    workflows: ["Quality Gate Fullstack"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd-deploy-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-backend:
+    name: Deploy backend (Render)
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger Render backend deploy hook
+        env:
+          RENDER_DEPLOY_HOOK_BACKEND: ${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_BACKEND" ]; then
+            echo "Missing secret: RENDER_DEPLOY_HOOK_BACKEND"
+            exit 1
+          fi
+
+          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_BACKEND"
+          echo "Backend deploy hook triggered successfully"
+
+  deploy-frontend:
+    name: Deploy frontend (Vercel)
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger Vercel frontend deploy hook
+        env:
+          VERCEL_DEPLOY_HOOK_FRONTEND: ${{ secrets.VERCEL_DEPLOY_HOOK_FRONTEND }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK_FRONTEND" ]; then
+            echo "Missing secret: VERCEL_DEPLOY_HOOK_FRONTEND"
+            exit 1
+          fi
+
+          curl --fail --silent --show-error --request POST "$VERCEL_DEPLOY_HOOK_FRONTEND"
+          echo "Frontend deploy hook (Vercel) triggered successfully"
