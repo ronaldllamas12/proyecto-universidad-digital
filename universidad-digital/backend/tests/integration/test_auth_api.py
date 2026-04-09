@@ -3,9 +3,7 @@ import pytest_asyncio
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.orm import Session
-
 from tests.factories import RoleFactory, UserFactory
-
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
@@ -79,3 +77,77 @@ async def test_me_includes_user_roles(authenticated_client: AsyncClient) -> None
     payload = response.json()
     assert isinstance(payload.get("roles"), list)
     assert payload["roles"]
+
+
+async def test_forgot_password_returns_generic_message(api_client: AsyncClient, admin_user) -> None:
+    response = await api_client.post(
+        "/auth/forgot-password",
+        json={"email": admin_user.email},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    payload = response.json()
+    assert "Si el correo está registrado" in payload["detail"]
+
+
+async def test_forgot_password_unknown_email_keeps_generic_response(api_client: AsyncClient) -> None:
+    response = await api_client.post(
+        "/auth/forgot-password",
+        json={"email": "missing.user@test.com"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    payload = response.json()
+    assert "Si el correo está registrado" in payload["detail"]
+    assert payload.get("reset_token") is None
+
+
+async def test_reset_password_updates_credentials(api_client: AsyncClient, admin_user) -> None:
+    forgot_response = await api_client.post(
+        "/auth/forgot-password",
+        json={"email": admin_user.email},
+    )
+    assert forgot_response.status_code == status.HTTP_200_OK
+    reset_token = forgot_response.json().get("reset_token")
+    assert reset_token
+
+    reset_response = await api_client.post(
+        "/auth/reset-password",
+        json={
+            "token": reset_token,
+            "new_password": "newpassword123",
+        },
+    )
+    assert reset_response.status_code == status.HTTP_200_OK
+    assert reset_response.json()["detail"] == "Contraseña restablecida correctamente."
+
+    login_with_old_password = await api_client.post(
+        "/auth/login",
+        json={
+            "email": admin_user.email,
+            "password": admin_user.raw_password,
+        },
+    )
+    assert login_with_old_password.status_code == status.HTTP_401_UNAUTHORIZED
+
+    login_with_new_password = await api_client.post(
+        "/auth/login",
+        json={
+            "email": admin_user.email,
+            "password": "newpassword123",
+        },
+    )
+    assert login_with_new_password.status_code == status.HTTP_200_OK
+
+
+async def test_reset_password_rejects_invalid_token(api_client: AsyncClient) -> None:
+    response = await api_client.post(
+        "/auth/reset-password",
+        json={
+            "token": "invalid-token",
+            "new_password": "newpassword123",
+        },
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert "Token de recuperación inválido o expirado." in response.json()["detail"]

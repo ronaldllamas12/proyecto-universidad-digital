@@ -2,12 +2,10 @@ from datetime import datetime, timezone
 from unittest.mock import Mock
 
 import pytest
-from fastapi import Request
-
 from app.auth import services as auth_services
 from app.core.errors import ForbiddenError, UnauthorizedError
 from app.users.models import User
-
+from fastapi import Request
 
 pytestmark = [pytest.mark.unit]
 
@@ -107,3 +105,124 @@ def test_require_roles_rejects_user_without_permissions():
 
     with pytest.raises(ForbiddenError, match="Permisos insuficientes"):
         auth_services.require_roles(user, {"Administrador", "Docente"})
+
+
+def test_create_password_reset_token_returns_none_when_user_not_found():
+    db = Mock()
+    db.scalar.return_value = None
+
+    token = auth_services.create_password_reset_token_for_email(db, "missing@uni.com")
+
+    assert token is None
+
+
+def test_create_password_reset_token_returns_none_for_inactive_user():
+    user = User(
+        email="inactive@uni.com",
+        full_name="Inactive",
+        hashed_password="hashed",
+        is_active=False,
+    )
+    db = Mock()
+    db.scalar.return_value = user
+
+    token = auth_services.create_password_reset_token_for_email(db, user.email)
+
+    assert token is None
+
+
+def test_create_password_reset_token_builds_expected_claims(monkeypatch):
+    user = User(
+        id=77,
+        email="active@uni.com",
+        full_name="Active",
+        hashed_password="hashed",
+        is_active=True,
+    )
+    db = Mock()
+    db.scalar.return_value = user
+
+    captured: dict[str, object] = {}
+
+    def _fake_create_access_token(**kwargs):
+        captured.update(kwargs)
+        return "reset-token"
+
+    monkeypatch.setattr(auth_services, "create_access_token", _fake_create_access_token)
+
+    token = auth_services.create_password_reset_token_for_email(db, user.email)
+
+    assert token == "reset-token"
+    assert captured["subject"] == str(user.id)
+    assert captured["expires_minutes"] == auth_services.settings.password_reset_token_expiration_minutes
+    assert isinstance(captured["extra_claims"], dict)
+    assert captured["extra_claims"]["typ"] == "password-reset"
+    assert captured["extra_claims"]["pwd_fp"]
+
+
+def test_reset_password_with_token_updates_hash(monkeypatch):
+    user = User(
+        id=10,
+        email="active@uni.com",
+        full_name="Active",
+        hashed_password="old-hash",
+        is_active=True,
+    )
+    db = Mock()
+    db.get.return_value = user
+
+    fp = auth_services._password_fingerprint("old-hash")
+    monkeypatch.setattr(
+        auth_services,
+        "decode_access_token",
+        lambda _token: {"typ": "password-reset", "sub": "10", "pwd_fp": fp},
+    )
+    monkeypatch.setattr(auth_services, "hash_password", lambda value: f"hashed::{value}")
+
+    auth_services.reset_password_with_token(db, "valid-token", "NewPass123")
+
+    assert user.hashed_password == "hashed::NewPass123"
+    db.add.assert_called_once_with(user)
+    db.commit.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"typ": "access", "sub": "10", "pwd_fp": "fp"},
+        {"typ": "password-reset", "sub": None, "pwd_fp": "fp"},
+        {"typ": "password-reset", "sub": "10", "pwd_fp": None},
+        {"typ": "password-reset", "sub": "abc", "pwd_fp": "fp"},
+    ],
+)
+def test_reset_password_with_token_rejects_invalid_payload(monkeypatch, payload):
+    db = Mock()
+    monkeypatch.setattr(auth_services, "decode_access_token", lambda _token: payload)
+
+    with pytest.raises(UnauthorizedError, match="Token de recuperación inválido o expirado"):
+        auth_services.reset_password_with_token(db, "invalid", "NewPass123")
+
+
+def test_reset_password_with_token_rejects_fingerprint_mismatch(monkeypatch):
+    user = User(
+        id=10,
+        email="active@uni.com",
+        full_name="Active",
+        hashed_password="current-hash",
+        is_active=True,
+    )
+    db = Mock()
+    db.get.return_value = user
+
+    monkeypatch.setattr(
+        auth_services,
+        "decode_access_token",
+        lambda _token: {
+            "typ": "password-reset",
+            "sub": "10",
+            "pwd_fp": "different-fingerprint",
+        },
+    )
+
+    with pytest.raises(UnauthorizedError, match="Token de recuperación inválido o expirado"):
+        auth_services.reset_password_with_token(db, "token", "NewPass123")
