@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
 import { Select } from "../../components/Select";
 
 import { Alert } from "../../components/Alert";
-import { usersService } from "../../services/usersService";
-import { rolesService } from "../../services/rolesService";
 import { useFetch } from "../../hooks/useFetch";
+import { rolesService } from "../../services/rolesService";
+import { usersService } from "../../services/usersService";
 import { getErrorMessage } from "../../utils/apiError";
 
 const createSchema = z.object({
@@ -34,8 +34,15 @@ export function UsersPage() {
     message: string;
     variant: "success" | "error";
   } | null>(null);
+  const [userQuery, setUserQuery] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState("");
 
   const { data: roles } = useFetch(rolesService.list, []);
+  const {
+    data: users,
+    error: usersError,
+    isLoading: usersLoading,
+  } = useFetch(usersService.list, []);
 
   const createForm = useForm<CreateForm>({
     resolver: zodResolver(createSchema),
@@ -49,6 +56,49 @@ export function UsersPage() {
       value: String(role.id),
       label: `${role.name} (#${role.id})`,
     })) ?? [];
+
+  const normalizedQuery = userQuery.trim().toLowerCase();
+  const matchedUsers = (users ?? [])
+    .filter((user) => {
+      if (!normalizedQuery) {
+        return true;
+      }
+      const haystack = `${user.id} ${user.email} ${user.full_name}`.toLowerCase();
+      return haystack.includes(normalizedQuery);
+    })
+    .slice(0, 50);
+
+  const userOptions = [
+    {
+      value: "",
+      label: usersLoading
+        ? "Cargando usuarios..."
+        : matchedUsers.length
+          ? "Selecciona un usuario"
+          : "No se encontraron usuarios",
+    },
+    ...matchedUsers.map((user) => ({
+      value: String(user.id),
+      label: `#${user.id} - ${user.full_name} (${user.email})`,
+    })),
+  ];
+
+  const handleSelectUser = (id: string) => {
+    setSelectedUserId(id);
+
+    if (!id) {
+      return;
+    }
+
+    const selected = (users ?? []).find((user) => String(user.id) === id);
+    if (!selected) {
+      return;
+    }
+
+    updateForm.setValue("id", String(selected.id), { shouldValidate: true });
+    updateForm.setValue("full_name", selected.full_name, { shouldValidate: true });
+    updateForm.setValue("is_active", selected.is_active ? "true" : "false");
+  };
 
   const handleCreate = async (values: CreateForm) => {
     try {
@@ -128,6 +178,22 @@ export function UsersPage() {
 
         <div className="card">
           <h2>Actualizar usuario</h2>
+          <Input
+            label="Buscar usuario (ID, nombre o email)"
+            value={userQuery}
+            onChange={(event) => setUserQuery(event.target.value)}
+            placeholder="Ejemplo: maria, 12 o correo@dominio.com"
+          />
+          <Select
+            label="Usuario"
+            value={selectedUserId}
+            onChange={(event) => handleSelectUser(event.target.value)}
+            options={userOptions}
+            disabled={usersLoading || !userOptions.length}
+          />
+          {usersError ? (
+            <Alert message={usersError} variant="error" />
+          ) : null}
           <form
             onSubmit={updateForm.handleSubmit(handleUpdate)}
             className="grid"
