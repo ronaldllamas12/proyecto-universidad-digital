@@ -1,19 +1,41 @@
-import { useState } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Alert } from "../../components/Alert";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
-import { Alert } from "../../components/Alert";
-import { periodsService } from "../../services/periodsService";
 import { useFetch } from "../../hooks/useFetch";
+import { periodsService } from "../../services/periodsService";
 import { getErrorMessage } from "../../utils/apiError";
+
+function toYmd(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
+
+const todayYmd = toYmd(new Date());
 
 const createSchema = z.object({
   code: z.string().min(2),
   name: z.string().min(3),
-  start_date: z.string().min(8),
-  end_date: z.string().min(8),
+  start_date: z.string().min(1, "La fecha de inicio es obligatoria."),
+  end_date: z.string().min(1, "La fecha de fin es obligatoria."),
+}).superRefine((values, ctx) => {
+  if (values.end_date < values.start_date) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["end_date"],
+      message: "La fecha de fin no puede ser anterior a la de inicio.",
+    });
+  }
+
+  if (values.start_date === todayYmd && values.end_date === values.start_date) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["end_date"],
+      message: "Si la fecha de inicio es hoy, la fecha de fin debe ser posterior.",
+    });
+  }
 });
 
 const updateSchema = z.object({
@@ -89,12 +111,14 @@ export function PeriodsPage() {
               error={createForm.formState.errors.name?.message}
             />
             <Input
-              label="Fecha inicio (YYYY-MM-DD)"
+              label="Fecha inicio"
+              type="date"
               {...createForm.register("start_date")}
               error={createForm.formState.errors.start_date?.message}
             />
             <Input
-              label="Fecha fin (YYYY-MM-DD)"
+              label="Fecha fin"
+              type="date"
               {...createForm.register("end_date")}
               error={createForm.formState.errors.end_date?.message}
             />
@@ -120,11 +144,13 @@ export function PeriodsPage() {
             />
             <Input
               label="Fecha inicio (opcional)"
+              type="date"
               {...updateForm.register("start_date")}
               error={updateForm.formState.errors.start_date?.message}
             />
             <Input
               label="Fecha fin (opcional)"
+              type="date"
               {...updateForm.register("end_date")}
               error={updateForm.formState.errors.end_date?.message}
             />

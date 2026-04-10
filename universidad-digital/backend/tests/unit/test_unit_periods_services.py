@@ -3,11 +3,9 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
-
 from app.core.errors import ConflictError, NotFoundError
 from app.periods import services as periods_services
 from app.periods.schemas import AcademicPeriodCreate, AcademicPeriodUpdate
-
 
 pytestmark = [pytest.mark.unit]
 
@@ -31,6 +29,21 @@ def test_create_period_rejects_end_date_before_start_date():
     )
 
     with pytest.raises(ConflictError, match="fecha de fin"):
+        periods_services.create_period(db, data)
+
+
+def test_create_period_rejects_same_day_end_when_start_is_today():
+    db = Mock()
+    db.scalar.return_value = None
+    today = date.today()
+    data = AcademicPeriodCreate.model_construct(
+        code="2026-HOY",
+        name="Periodo hoy",
+        start_date=today,
+        end_date=today,
+    )
+
+    with pytest.raises(ConflictError, match="fecha de inicio es hoy"):
         periods_services.create_period(db, data)
 
 

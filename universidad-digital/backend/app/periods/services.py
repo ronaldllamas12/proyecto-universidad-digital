@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from datetime import date
 
 from app.core.errors import ConflictError, NotFoundError
 from app.periods.models import AcademicPeriod
 from app.periods.schemas import AcademicPeriodCreate, AcademicPeriodUpdate
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 
 def create_period(db: Session, data: AcademicPeriodCreate) -> AcademicPeriod:
@@ -14,6 +15,8 @@ def create_period(db: Session, data: AcademicPeriodCreate) -> AcademicPeriod:
         raise ConflictError("El código de periodo ya existe.")
     if data.end_date < data.start_date:
         raise ConflictError("La fecha de fin no puede ser anterior a la de inicio.")
+    if data.start_date == date.today() and data.end_date == data.start_date:
+        raise ConflictError("Si la fecha de inicio es hoy, la fecha de fin debe ser posterior.")
     period = AcademicPeriod(
         code=data.code,
         name=data.name,
