@@ -99,11 +99,11 @@ app.add_middleware(SecurityHeadersMiddleware)
 
 @app.get("/")
 def root():
-    return {"status": "ok", "message": "API funcionando 🚀"}
+    return {"status": "ok", "message": "API funcionando "}
 
 @app.get("/_meta/security-policy", tags=["meta"])
 def security_policy_metadata() -> dict[str, object]:
-    return {
+    return{
         "security_headers": {name: value for name, value in SECURITY_RESPONSE_HEADERS},
         "middleware": "SecurityHeadersMiddleware",
         "environment": settings.env,
