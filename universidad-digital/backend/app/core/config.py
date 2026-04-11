@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     smtp_password: str | None = None
     smtp_from_email: str | None = None
     smtp_use_tls: bool = True
-    frontend_reset_password_url: str = "http://localhost:3000/reset-password"|"https://proyecto-universidad-digital-zj37-g4hkxbx0t.vercel.app/reset-password "
+    frontend_reset_password_url: str = "https://proyecto-universidad-digital-zj37-g4hkxbx0t.vercel.app/reset-password "
     cookie_name: str = "access_token"
     cookie_secure: bool = True if env == "production" else False
     cookie_samesite: Literal["lax", "strict", "none"] = (
