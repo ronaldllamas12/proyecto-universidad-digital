@@ -20,7 +20,9 @@ services:
       - key: APP_JWT_SECRET
         sync: false
       - key: APP_CORS_ORIGINS
-        value: '["https://proyecto-universidad-digital.onrender.com","https://universidad-digital.onrender.com"]'
+        value: '["https://proyecto-universidad-digital-zj37.vercel.app","https://proyecto-universidad-digital.onrender.com","https://universidad-digital.onrender.com"]'
+      - key: APP_FRONTEND_RESET_PASSWORD_URL
+        value: https://proyecto-universidad-digital-zj37.vercel.app/forgot-password
       - key: APP_COOKIE_SAMESITE
         value: none
       - key: PYTHON_VERSION
