@@ -14,7 +14,12 @@ import { usersService } from "../../services/usersService";
 import { getErrorMessage } from "../../utils/apiError";
 
 const createSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email("Ingresa un correo institucional valido."),
+  recovery_email: z
+    .string()
+    .email("Ingresa un correo personal valido.")
+    .optional()
+    .or(z.literal("")),
   full_name: z.string().min(2),
   password: z.string().min(8),
   role_id: z.string().min(1),
@@ -23,6 +28,11 @@ const createSchema = z.object({
 const updateSchema = z.object({
   id: z.string().min(1),
   full_name: z.string().min(2).optional(),
+  recovery_email: z
+    .string()
+    .email("Ingresa un correo personal valido.")
+    .optional()
+    .or(z.literal("")),
   is_active: z.string().optional(),
 });
 
@@ -97,6 +107,9 @@ export function UsersPage() {
 
     updateForm.setValue("id", String(selected.id), { shouldValidate: true });
     updateForm.setValue("full_name", selected.full_name, { shouldValidate: true });
+    updateForm.setValue("recovery_email", selected.recovery_email ?? "", {
+      shouldValidate: true,
+    });
     updateForm.setValue("is_active", selected.is_active ? "true" : "false");
   };
 
@@ -104,6 +117,7 @@ export function UsersPage() {
     try {
       await usersService.create({
         email: values.email,
+        recovery_email: values.recovery_email || undefined,
         full_name: values.full_name,
         password: values.password,
         role_ids: [Number(values.role_id)],
@@ -122,6 +136,7 @@ export function UsersPage() {
     try {
       await usersService.update(Number(values.id), {
         full_name: values.full_name || undefined,
+        recovery_email: values.recovery_email || undefined,
         is_active: values.is_active ? values.is_active === "true" : undefined,
       });
       setAlert({
@@ -147,10 +162,16 @@ export function UsersPage() {
             className="grid"
           >
             <Input
-              label="Email"
+              label="Correo institucional (login)"
               type="email"
               {...createForm.register("email")}
               error={createForm.formState.errors.email?.message}
+            />
+            <Input
+              label="Correo personal (recuperacion)"
+              type="email"
+              {...createForm.register("recovery_email")}
+              error={createForm.formState.errors.recovery_email?.message}
             />
             <Input
               label="Nombre completo"
@@ -207,6 +228,12 @@ export function UsersPage() {
               label="Nombre completo (opcional)"
               {...updateForm.register("full_name")}
               error={updateForm.formState.errors.full_name?.message}
+            />
+            <Input
+              label="Correo personal (recuperacion)"
+              type="email"
+              {...updateForm.register("recovery_email")}
+              error={updateForm.formState.errors.recovery_email?.message}
             />
             <Select
               label="Activo"

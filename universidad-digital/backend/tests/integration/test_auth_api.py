@@ -1,5 +1,6 @@
 import pytest
 import pytest_asyncio
+from app.auth import services as auth_services
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.orm import Session
@@ -11,7 +12,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 @pytest.fixture
 def admin_user(db: Session):
     admin_role = RoleFactory(name="Administrador")
-    user = UserFactory(roles=[admin_role])
+    user = UserFactory(roles=[admin_role], recovery_email="recovery@test.com")
     user.raw_password = "testpassword"
     db.flush()
     return user
@@ -99,22 +100,37 @@ async def test_forgot_password_unknown_email_keeps_generic_response(api_client: 
     assert response.status_code == status.HTTP_200_OK
     payload = response.json()
     assert "Si el correo está registrado" in payload["detail"]
-    assert payload.get("reset_token") is None
+    assert "reset_token" not in payload
 
 
-async def test_reset_password_updates_credentials(api_client: AsyncClient, admin_user) -> None:
+async def test_reset_password_updates_credentials(
+    api_client: AsyncClient,
+    admin_user,
+    db: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(auth_services, "send_password_reset_email", lambda *_args, **_kwargs: None)
+
     forgot_response = await api_client.post(
         "/auth/forgot-password",
         json={"email": admin_user.email},
     )
     assert forgot_response.status_code == status.HTTP_200_OK
-    reset_token = forgot_response.json().get("reset_token")
+
+    reset_token = auth_services.create_password_reset_token_for_email(db, admin_user.email)
     assert reset_token
+
+    exchange_response = await api_client.post(
+        "/auth/reset-password/exchange",
+        json={"token": reset_token},
+    )
+    assert exchange_response.status_code == status.HTTP_200_OK
+    session_token = exchange_response.json()["session_token"]
 
     reset_response = await api_client.post(
         "/auth/reset-password",
         json={
-            "token": reset_token,
+            "token": session_token,
             "new_password": "newpassword123",
         },
     )

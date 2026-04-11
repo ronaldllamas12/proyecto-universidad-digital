@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.auth.role_utils import user_has_role
 from app.core.errors import ConflictError, NotFoundError
 from app.enrollments.models import Enrollment
 from app.grades.models import Grade
@@ -18,7 +19,7 @@ def create_grade(db: Session, data: GradeCreate, user: User | None = None) -> Gr
         raise NotFoundError("Inscripción no encontrada.")
     if not enrollment.is_active:
         raise ConflictError("Inscripción inactiva.")
-    if user and any(role.name == "Docente" for role in user.roles) and enrollment.teacher_id != user.id:
+    if user and user_has_role(user, "Docente") and enrollment.teacher_id != user.id:
         raise ConflictError("Solo puedes calificar estudiantes de tus materias asignadas.")
     grade = Grade(
         enrollment_id=data.enrollment_id,
@@ -34,12 +35,12 @@ def create_grade(db: Session, data: GradeCreate, user: User | None = None) -> Gr
 def list_grades(db: Session, user: User) -> list[GradeResponse]:
     """Lista calificaciones respetando ownership. Admin no ve el valor de la nota."""
     stmt = select(Grade).join(Enrollment).order_by(Grade.id)
-    if any(role.name == "Estudiante" for role in user.roles):
+    if user_has_role(user, "Estudiante"):
         stmt = stmt.where(Enrollment.user_id == user.id)
-    elif any(role.name == "Docente" for role in user.roles):
+    elif user_has_role(user, "Docente"):
         stmt = stmt.where(Enrollment.teacher_id == user.id)
     grades = list(db.scalars(stmt).all())
-    is_admin = any(role.name == "Administrador" for role in user.roles)
+    is_admin = user_has_role(user, "Administrador")
 
     result: list[GradeResponse] = []
     for g in grades:
@@ -67,10 +68,10 @@ def get_grade(db: Session, grade_id: int, user: User) -> Grade:
     if not grade:
         raise NotFoundError("Calificación no encontrada.")
     enrollment = db.get(Enrollment, grade.enrollment_id)
-    if any(role.name == "Estudiante" for role in user.roles):
+    if user_has_role(user, "Estudiante"):
         if not enrollment or enrollment.user_id != user.id:
             raise ConflictError("Acceso no permitido.")
-    elif any(role.name == "Docente" for role in user.roles):
+    elif user_has_role(user, "Docente"):
         if not enrollment or enrollment.teacher_id != user.id:
             raise ConflictError("Solo puedes ver o editar calificaciones de tus materias.")
     return grade

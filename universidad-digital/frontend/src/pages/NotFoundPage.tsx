@@ -1,23 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
+import { getHomePathForRoles } from "../auth/roleHomePath";
 import { useAuth } from "../hooks/useAuth";
-
-function getHomePath(roles: string[]): string {
-  if (roles.includes("Administrador")) {
-    return "/admin";
-  }
-  if (roles.includes("Docente")) {
-    return "/teacher";
-  }
-  if (roles.includes("Estudiante")) {
-    return "/student";
-  }
-  return "/login";
-}
 
 export function NotFoundPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const homePath = getHomePath(user?.roles ?? []);
+  const homePath = getHomePathForRoles(user?.roles ?? []) ?? "/login";
 
   const handleGoBack = () => {
     const historyIndex =

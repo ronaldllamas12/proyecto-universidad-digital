@@ -1,34 +1,36 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { LoginPage } from "../pages/LoginPage";
-import { AccessDeniedPage } from "../pages/AccessDeniedPage";
-import { NotFoundPage } from "../pages/NotFoundPage";
-import { ServerErrorPage } from "../pages/ServerErrorPage";
-import { ProtectedRoute } from "./ProtectedRoute";
-import { AdminDashboard } from "../pages/admin/AdminDashboard";
-import { UsersPage } from "../pages/admin/UsersPage";
-import { SubjectsPage } from "../pages/admin/SubjectsPage";
-import { PeriodsPage } from "../pages/admin/PeriodsPage";
-import { EnrollmentsPage } from "../pages/admin/EnrollmentsPage";
-import { GradesPage } from "../pages/admin/GradesPage";
-import { StudentDashboard } from "../pages/student/StudentDashboard";
-import { StudentSubjectsPage } from "../pages/student/StudentSubjectsPage";
-import { StudentEnrollmentsPage } from "../pages/student/StudentEnrollmentsPage";
-import { StudentGradesPage } from "../pages/student/StudentGradesPage";
-import { TeacherDashboard } from "../pages/teacher/TeacherDashboard";
-import { TeacherGradesPage } from "../pages/teacher/TeacherGradesPage";
-import { TeacherEnrollmentsPage } from "../pages/teacher/TeacherEnrollmentsPage";
+import { getHomePathForRoles } from "../auth/roleHomePath";
 import { useAuth } from "../hooks/useAuth";
 import { AdminLayout } from "../layouts/AdminLayout";
-import { StudentLayout } from "../layouts/StudentLayout";
-import { DocenteLayout } from "../layouts/DocenteLayout";
 import { DashboardLayout } from "../layouts/DashboardLayout";
-import { UsersPageFilter } from "../pages/admin/UsersFilter";
-import { SubjectsListFilter } from "../pages/admin/subjectsFilters";
-import { TeacherSubjectsPage } from "../pages/teacher/TeacherSubject";
+import { DocenteLayout } from "../layouts/DocenteLayout";
+import { StudentLayout } from "../layouts/StudentLayout";
+import { AccessDeniedPage } from "../pages/AccessDeniedPage";
+import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
+import { LoginPage } from "../pages/LoginPage";
+import { NotFoundPage } from "../pages/NotFoundPage";
+import { ServerErrorPage } from "../pages/ServerErrorPage";
+import { AdminDashboard } from "../pages/admin/AdminDashboard";
 import { EnrollmentsFilter } from "../pages/admin/EnrollmentsFilter";
+import { EnrollmentsPage } from "../pages/admin/EnrollmentsPage";
+import { GradesPage } from "../pages/admin/GradesPage";
 import { PeriodsFilters } from "../pages/admin/PeriodFilters";
-import { TeacherGradesFilters } from "../pages/teacher/TeacherGradesFilters";
+import { PeriodsPage } from "../pages/admin/PeriodsPage";
+import { SubjectsPage } from "../pages/admin/SubjectsPage";
 import { TasksPage } from "../pages/admin/TasksPage";
+import { UsersPageFilter } from "../pages/admin/UsersFilter";
+import { UsersPage } from "../pages/admin/UsersPage";
+import { SubjectsListFilter } from "../pages/admin/subjectsFilters";
+import { StudentDashboard } from "../pages/student/StudentDashboard";
+import { StudentEnrollmentsPage } from "../pages/student/StudentEnrollmentsPage";
+import { StudentGradesPage } from "../pages/student/StudentGradesPage";
+import { StudentSubjectsPage } from "../pages/student/StudentSubjectsPage";
+import { TeacherDashboard } from "../pages/teacher/TeacherDashboard";
+import { TeacherEnrollmentsPage } from "../pages/teacher/TeacherEnrollmentsPage";
+import { TeacherGradesFilters } from "../pages/teacher/TeacherGradesFilters";
+import { TeacherGradesPage } from "../pages/teacher/TeacherGradesPage";
+import { TeacherSubjectsPage } from "../pages/teacher/TeacherSubject";
+import { ProtectedRoute } from "./ProtectedRoute";
 
 function HomeRedirect() {
   const { user, isLoading } = useAuth();
@@ -38,13 +40,11 @@ function HomeRedirect() {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  if (user.roles.includes("Administrador")) {
-    return <Navigate to="/admin" replace />;
+  const homePath = getHomePathForRoles(user.roles);
+  if (!homePath) {
+    return <Navigate to="/login" replace />;
   }
-  if (user.roles.includes("Docente")) {
-    return <Navigate to="/teacher" replace />;
-  }
-  return <Navigate to="/student" replace />;
+  return <Navigate to={homePath} replace />;
 }
 
 export function AppRoutes() {
@@ -52,6 +52,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<HomeRedirect />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/denied" element={<AccessDeniedPage />} />
       <Route path="/500" element={<ServerErrorPage />} />
 

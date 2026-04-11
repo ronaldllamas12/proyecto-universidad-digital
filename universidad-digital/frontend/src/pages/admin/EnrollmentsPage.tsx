@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "../../components/Button";
 import { Select } from "../../components/Select";
 import { Alert } from "../../components/Alert";
+import { hasAppRole } from "../../auth/roleHomePath";
 import { enrollmentsService } from "../../services/enrollmentsService";
 import { usersService } from "../../services/usersService";
 import { subjectsService } from "../../services/subjectsService";
@@ -34,8 +35,8 @@ export function EnrollmentsPage() {
     resolver: zodResolver(createSchema),
   });
 
-  const students = users?.filter((u) => u.roles?.includes("Estudiante")) ?? [];
-  const teachers = users?.filter((u) => u.roles?.includes("Docente")) ?? [];
+  const students = users?.filter((u) => hasAppRole(u.roles ?? [], ["Estudiante"])) ?? [];
+  const teachers = users?.filter((u) => hasAppRole(u.roles ?? [], ["Docente"])) ?? [];
   const activePeriods = periods?.filter((p) => p.is_active) ?? [];
 
   const studentOptions = students.map((user) => ({

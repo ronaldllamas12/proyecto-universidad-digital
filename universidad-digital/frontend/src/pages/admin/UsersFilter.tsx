@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { UserResponse } from "../../api/auth";
+import { hasAppRole } from "../../auth/roleHomePath";
 import { Alert } from "../../components/Alert";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
@@ -92,9 +93,9 @@ export function UsersPageFilter() {
   const filteredUsers = (users ?? []).filter((user) => {
     const matchesRole =
       roleFilter === "student"
-        ? user.roles.includes("Estudiante")
+        ? hasAppRole(user.roles, ["Estudiante"])
         : roleFilter === "teacher"
-          ? user.roles.includes("Docente")
+          ? hasAppRole(user.roles, ["Docente"])
           : true;
 
     const matchesActive =

@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.auth.role_utils import user_has_role
 from app.core.errors import ConflictError, NotFoundError
 from app.enrollments.models import Enrollment
 from app.enrollments.schemas import (
@@ -65,9 +66,9 @@ def list_enrollments(db: Session, user: User) -> list[EnrollmentResponse]:
     """Lista inscripciones respetando ownership."""
     stmt = select(Enrollment).order_by(Enrollment.id)
 
-    if any(role.name == "Estudiante" for role in user.roles):
+    if user_has_role(user, "Estudiante"):
         stmt = stmt.where(Enrollment.user_id == user.id)
-    elif any(role.name == "Docente" for role in user.roles):
+    elif user_has_role(user, "Docente"):
         stmt = stmt.where(Enrollment.teacher_id == user.id)
 
     enrollments = db.scalars(stmt).all()
@@ -89,7 +90,7 @@ def update_enrollment(
     if not enrollment:
         raise NotFoundError("Inscripción no encontrada.")
 
-    if any(role.name == "Estudiante" for role in user.roles):
+    if user_has_role(user, "Estudiante"):
         if enrollment.user_id != user.id:
             raise ConflictError("Acceso no permitido.")
 
@@ -111,7 +112,7 @@ def deactivate_enrollment(
     if not enrollment:
         raise NotFoundError("Inscripción no encontrada.")
 
-    if any(role.name == "Estudiante" for role in user.roles):
+    if user_has_role(user, "Estudiante"):
         if enrollment.user_id != user.id:
             raise ConflictError("Acceso no permitido.")
 

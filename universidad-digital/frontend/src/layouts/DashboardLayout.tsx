@@ -1,5 +1,6 @@
 import { type ReactNode, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { hasAppRole } from "../auth/roleHomePath";
 import { useAuth } from "../hooks/useAuth";
 
 const MenuIcon = () => (
@@ -162,7 +163,7 @@ export function DashboardLayout({
           <ul
             className={`dashboard-sidebar__nav ${emptySidebar ? "dashboard-sidebar__nav--empty" : ""}`.trim()}
           >
-            {!emptySidebar && roles.includes("Administrador") && (
+            {!emptySidebar && hasAppRole(roles, ["Administrador"]) && (
               <>
                 <li>
                   <NavLink
@@ -213,7 +214,7 @@ export function DashboardLayout({
                 </li>
               </>
             )}
-            {!emptySidebar && roles.includes("Docente") && (
+            {!emptySidebar && hasAppRole(roles, ["Docente"]) && (
               <>
                 <li>
                   <NavLink
@@ -245,7 +246,7 @@ export function DashboardLayout({
                 </li>
               </>
             )}
-            {!emptySidebar && roles.includes("Estudiante") && (
+            {!emptySidebar && hasAppRole(roles, ["Estudiante"]) && (
               <>
                 <li>
                   <NavLink

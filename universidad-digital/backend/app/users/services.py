@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
+from app.auth.role_utils import normalize_role_name
 from app.core.errors import ConflictError, NotFoundError
 from app.core.security import hash_password
 from app.roles.models import Role
 from app.users.models import User
 from app.users.schemas import UserCreate, UserUpdate
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 
 def create_user(db: Session, data: UserCreate) -> User:
     """Crea un usuario y asigna roles."""
     if db.scalar(select(User).where(User.email == data.email)):
-        raise ConflictError("El email ya está registrado.")
+        raise ConflictError("El email institucional ya está registrado.")
 
     roles: list[Role] = []
     if data.role_ids:
@@ -26,13 +26,17 @@ def create_user(db: Session, data: UserCreate) -> User:
             roles = [default_role]
 
     min_length = 8
-    if any(role.name in {"Administrador", "Docente"} for role in roles):
+    if any(
+        normalize_role_name(role.name) in {"Administrador", "Docente"}
+        for role in roles
+    ):
         min_length = 12
     if len(data.password) < min_length:
         raise ConflictError(f"La contraseña debe tener al menos {min_length} caracteres.")
 
     user = User(
         email=data.email,
+        recovery_email=data.recovery_email,
         full_name=data.full_name,
         hashed_password=hash_password(data.password),
     )
@@ -64,11 +68,16 @@ def update_user(db: Session, user_id: int, data: UserUpdate) -> User:
         user.full_name = data.full_name
     if data.password is not None:
         min_length = 8
-        if any(role.name in {"Administrador", "Docente"} for role in user.roles):
+        if any(
+            normalize_role_name(role.name) in {"Administrador", "Docente"}
+            for role in user.roles
+        ):
             min_length = 12
         if len(data.password) < min_length:
             raise ConflictError(f"La contraseña debe tener al menos {min_length} caracteres.")
         user.hashed_password = hash_password(data.password)
+    if data.recovery_email is not None:
+        user.recovery_email = data.recovery_email
     if data.is_active is not None:
         user.is_active = data.is_active
     if data.role_ids is not None:

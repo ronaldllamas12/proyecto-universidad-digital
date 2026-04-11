@@ -96,4 +96,20 @@ describe("DashboardLayout", () => {
       screen.queryByRole("link", { name: /crear usuarios/i }),
     ).not.toBeInTheDocument();
   });
+
+  it("muestra menú de Docente para variantes del rol", () => {
+    mockedUseAuth.mockReturnValue({
+      user: { full_name: "Docente Temporal", roles: ["Docente Temporal"] },
+      logout: logoutMock,
+    } as any);
+
+    renderLayout();
+
+    expect(
+      screen.getByRole("link", { name: /dashboard docente/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /registrar calificaciones/i }),
+    ).toBeInTheDocument();
+  });
 });

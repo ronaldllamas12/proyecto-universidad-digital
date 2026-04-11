@@ -9,6 +9,7 @@ class UserCreate(BaseModel):
     """Datos requeridos para crear un usuario."""
 
     email: EmailStr
+    recovery_email: EmailStr | None = None
     full_name: str = Field(min_length=2, max_length=200)
     password: str = Field(min_length=8, max_length=128)
     role_ids: list[int] | None = None
@@ -26,6 +27,7 @@ class UserUpdate(BaseModel):
     """Datos permitidos para actualizar un usuario."""
 
     full_name: str | None = Field(default=None, min_length=2, max_length=200)
+    recovery_email: EmailStr | None = None
     password: str | None = Field(default=None, min_length=8, max_length=128)
     is_active: bool | None = None
     role_ids: list[int] | None = None
@@ -48,6 +50,7 @@ class UserResponse(BaseModel):
 
     id: int
     email: EmailStr
+    recovery_email: EmailStr | None = None
     full_name: str
     is_active: bool
     created_at: datetime

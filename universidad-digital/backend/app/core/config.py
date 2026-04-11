@@ -32,6 +32,14 @@ class Settings(BaseSettings):
     jwt_expiration_minutes: int = 60
     password_reset_token_expiration_minutes: int = 15
 
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from_email: str | None = None
+    smtp_use_tls: bool = True
+    frontend_reset_password_url: str = "http://localhost:3000/forgot-password"
+
     cookie_name: str = "access_token"
     cookie_secure: bool = True if env == "production" else False
     cookie_samesite: Literal["lax", "strict", "none"] = (

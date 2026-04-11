@@ -43,6 +43,7 @@ describe("LoginPage", () => {
       login: loginMock,
       error: null,
       isAuthenticated: false,
+      user: null,
     } as any);
   });
 
@@ -50,7 +51,7 @@ describe("LoginPage", () => {
     renderPage();
 
     expect(
-      screen.getByRole("textbox", { name: /correo electrónico/i }),
+      screen.getByRole("textbox", { name: /correo institucional/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText(/contraseña/i, { selector: "input" }),
@@ -65,6 +66,7 @@ describe("LoginPage", () => {
       login: loginMock,
       error: "Credenciales inválidas",
       isAuthenticated: false,
+      user: null,
     } as any);
 
     renderPage();
@@ -74,12 +76,12 @@ describe("LoginPage", () => {
     );
   });
 
-  it("envía credenciales sanitizadas al login", async () => {
+  it("sanitiza el correo pero conserva la contraseña intacta", async () => {
     const user = userEvent.setup();
     renderPage();
 
     await user.type(
-      screen.getByRole("textbox", { name: /correo electrónico/i }),
+      screen.getByRole("textbox", { name: /correo institucional/i }),
       "   admin@uni.com   ",
     );
     await user.type(
@@ -89,20 +91,21 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: /iniciar sesión/i }));
 
     await waitFor(() => {
-      expect(loginMock).toHaveBeenCalledWith("admin@uni.com", "Password123");
+      expect(loginMock).toHaveBeenCalledWith("admin@uni.com", "  Password123  ");
     });
   });
 
-  it("redirige a / cuando ya está autenticado", () => {
+  it("redirige al panel del rol cuando ya está autenticado", () => {
     mockedUseAuth.mockReturnValue({
       login: loginMock,
       error: null,
       isAuthenticated: true,
+      user: { roles: ["Administrador"] },
     } as any);
 
     renderPage();
 
-    expect(navigateMock).toHaveBeenCalledWith("/", { replace: true });
+    expect(navigateMock).toHaveBeenCalledWith("/admin", { replace: true });
   });
 
   it("valida formato de email antes de enviar", async () => {
@@ -110,7 +113,7 @@ describe("LoginPage", () => {
     renderPage();
 
     await user.type(
-      screen.getByRole("textbox", { name: /correo electrónico/i }),
+      screen.getByRole("textbox", { name: /correo institucional/i }),
       "correo-invalido",
     );
     await user.type(
@@ -122,5 +125,35 @@ describe("LoginPage", () => {
     await waitFor(() => {
       expect(loginMock).not.toHaveBeenCalled();
     });
+  });
+
+  it("redirige al panel correcto cuando el rol es una variante conocida", () => {
+    mockedUseAuth.mockReturnValue({
+      login: loginMock,
+      error: null,
+      isAuthenticated: true,
+      user: { roles: ["Docente Temporal Avanzado"] },
+    } as any);
+
+    renderPage();
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(navigateMock).toHaveBeenCalledWith("/teacher", { replace: true });
+  });
+
+  it("muestra una alerta cuando la cuenta no tiene un rol habilitado", () => {
+    mockedUseAuth.mockReturnValue({
+      login: loginMock,
+      error: null,
+      isAuthenticated: true,
+      user: { roles: ["Coordinador"] },
+    } as any);
+
+    renderPage();
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /no tiene un rol habilitado/i,
+    );
+    expect(navigateMock).not.toHaveBeenCalled();
   });
 });

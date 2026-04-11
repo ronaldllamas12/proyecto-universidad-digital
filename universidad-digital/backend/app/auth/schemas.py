@@ -56,7 +56,6 @@ class ForgotPasswordResponse(BaseModel):
     """Respuesta para solicitud de recuperación."""
 
     detail: str
-    reset_token: str | None = None
 
 
 class ResetPasswordRequest(BaseModel):
@@ -84,6 +83,26 @@ class ResetPasswordRequest(BaseModel):
         if len(value) > 128:
             raise ValueError("La nueva contraseña no puede superar los 128 caracteres.")
         return value
+
+
+class ExchangeResetTokenRequest(BaseModel):
+    """Datos para canjear token de enlace por token de sesión."""
+
+    token: str
+
+    @field_validator("token", mode="before")
+    @classmethod
+    def validate_token(cls, v: object) -> str:
+        value = str(v).strip() if v is not None else ""
+        if not value:
+            raise ValueError("El token de recuperación es obligatorio.")
+        return value
+
+
+class ExchangeResetTokenResponse(BaseModel):
+    """Respuesta con token de sesión para restablecer contraseña."""
+
+    session_token: str
 
 
 class MessageResponse(BaseModel):

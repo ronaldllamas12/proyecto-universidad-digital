@@ -1,13 +1,14 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { AuthLayout } from "../layouts/AuthLayout";
-import { Input } from "../components/Input";
-import { Button } from "../components/Button";
+import { getHomePathForRoles } from "../auth/roleHomePath";
 import { Alert } from "../components/Alert";
+import { Button } from "../components/Button";
+import { Input } from "../components/Input";
 import { useAuth } from "../hooks/useAuth";
+import { AuthLayout } from "../layouts/AuthLayout";
 import { sanitizeText } from "../utils/sanitize";
 
 const loginSchema = z.object({
@@ -20,8 +21,13 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
-  const { login, error, isAuthenticated } = useAuth();
+  const { login, error, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const homePath = getHomePathForRoles(user?.roles ?? []);
+  const accessError =
+    isAuthenticated && !homePath
+      ? "Tu cuenta no tiene un rol habilitado para acceder al panel. Contacta al administrador."
+      : null;
   const {
     register,
     handleSubmit,
@@ -32,26 +38,27 @@ export function LoginPage() {
 
   const onSubmit = async (values: LoginForm) => {
     const email = sanitizeText(values.email);
-    const password = sanitizeText(values.password);
+    const password = values.password;
     await login(email, password);
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/", { replace: true });
+    if (isAuthenticated && homePath) {
+      navigate(homePath, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [homePath, isAuthenticated, navigate]);
 
   return (
     <AuthLayout>
       <div className="login-alert-slot">
         {error ? <Alert message={error} /> : null}
+        {!error && accessError ? <Alert message={accessError} /> : null}
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="grid">
         <Input
-          label="Correo electrónico"
+          label="Correo institucional"
           type="email"
-          placeholder="example@mail.com"
+          placeholder="usuario@universidad.edu"
           {...register("email")}
           error={errors.email?.message}
         />
@@ -65,6 +72,9 @@ export function LoginPage() {
         <Button type="submit" disabled={isSubmitting}>
           Iniciar sesión
         </Button>
+        <p>
+          <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+        </p>
       </form>
     </AuthLayout>
   );

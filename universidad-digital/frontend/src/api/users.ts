@@ -1,8 +1,9 @@
-import { http } from "./http";
 import type { UserResponse } from "./auth";
+import { http } from "./http";
 
 export type UserCreate = {
   email: string;
+  recovery_email?: string;
   full_name: string;
   password: string;
   role_ids: number[];
@@ -10,6 +11,7 @@ export type UserCreate = {
 
 export type UserUpdate = {
   full_name?: string;
+  recovery_email?: string;
   password?: string;
   is_active?: boolean;
   role_ids?: number[];

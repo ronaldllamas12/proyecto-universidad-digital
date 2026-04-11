@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
+from app.auth.role_utils import user_has_role
 from app.core.deps import get_current_user_dep, get_db, require_roles_dep
 from app.enrollments.models import Enrollment
 from app.grades.schemas import GradeCreate, GradeResponse, GradeUpdate
@@ -44,7 +45,7 @@ def get_grade_endpoint(
     user_name = enrollment.user.full_name if enrollment and enrollment.user else None
     subject_name = enrollment.subject.name if enrollment and enrollment.subject else None
 
-    if any(r.name == "Administrador" for r in user.roles):
+    if user_has_role(user, "Administrador"):
         return GradeResponse(
             id=grade.id,
             enrollment_id=grade.enrollment_id,

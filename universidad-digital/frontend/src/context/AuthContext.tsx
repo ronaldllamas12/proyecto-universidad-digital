@@ -1,6 +1,8 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { UserResponse } from "../api/auth";
+import { hasAppRole } from "../auth/roleHomePath";
+import { setAuthToken } from "../auth/token";
 import { setUnauthorizedHandler } from "../api/http";
 import * as authService from "../services/authService";
 import { getErrorMessage, isUnauthorized } from "../utils/apiError";
@@ -18,6 +20,11 @@ type AuthContextValue = {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
+let initialSessionRequest: Promise<UserResponse | null> | null = null;
+let initialSessionResolved = false;
+let initialSessionUser: UserResponse | null = null;
+let initialSessionError: unknown = null;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isUnauthorized(err)) {
         setError(getErrorMessage(err, "No se pudo validar la sesión."));
       } else {
+        setAuthToken(null);
         setError(null);
       }
     } finally {
@@ -68,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!user) {
         return false;
       }
-      return user.roles.some((role) => roles.includes(role));
+      return hasAppRole(user.roles, roles);
     },
     [user]
   );
@@ -77,9 +85,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUnauthorizedHandler(() => {
       void logout();
     });
-    void refreshUser();
+
+    if (initialSessionResolved) {
+      setUser(initialSessionUser);
+      setError(
+        initialSessionError
+          ? getErrorMessage(initialSessionError, "No se pudo validar la sesión.")
+          : null,
+      );
+      setIsLoading(false);
+      return () => setUnauthorizedHandler(null);
+    }
+
+    if (!initialSessionRequest) {
+      initialSessionRequest = authService
+        .getCurrentUser()
+        .then((me) => me)
+        .catch((err) => {
+          if (isUnauthorized(err)) {
+            setAuthToken(null);
+            return null;
+          }
+          throw err;
+        })
+        .then((me) => {
+          initialSessionResolved = true;
+          initialSessionUser = me;
+          initialSessionError = null;
+          return me;
+        })
+        .catch((err) => {
+          initialSessionResolved = true;
+          initialSessionUser = null;
+          initialSessionError = err;
+          throw err;
+        })
+        .finally(() => {
+          initialSessionRequest = null;
+        });
+    }
+
+    void initialSessionRequest
+      .then((me) => {
+        setUser(me);
+        setError(null);
+      })
+      .catch((err) => {
+        setUser(null);
+        setError(getErrorMessage(err, "No se pudo validar la sesión."));
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
     return () => setUnauthorizedHandler(null);
-  }, [logout, refreshUser]);
+  }, [logout]);
 
   const value = useMemo(
     () => ({

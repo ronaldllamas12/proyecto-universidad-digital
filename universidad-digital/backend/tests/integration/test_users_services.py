@@ -70,7 +70,10 @@ def test_create_user_assigns_default_student_role_when_no_role_ids(db: Session) 
 def test_create_user_raises_conflict_on_duplicate_email(db: Session) -> None:
     _create_basic_user(db, email="dup@example.com")
 
-    with pytest.raises(ConflictError, match="El email ya está registrado"):
+    with pytest.raises(
+        ConflictError,
+        match="El email institucional ya está registrado",
+    ):
         create_user(
             db,
             UserCreate(

@@ -16,6 +16,15 @@ type RetryConfig = {
   __retryCount?: number;
 };
 
+const AUTH_ROUTES_THAT_HANDLE_401_LOCALLY = new Set([
+  "/auth/login",
+  "/auth/logout",
+  "/auth/me",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/reset-password/exchange",
+]);
+
 function isRetriableError(error: unknown): boolean {
   const e = error as {
     code?: string;
@@ -44,6 +53,32 @@ function delay(ms: number): Promise<void> {
 
 export function setUnauthorizedHandler(handler: (() => void) | null) {
   onUnauthorized = handler;
+}
+
+function normalizeRequestPath(url?: string) {
+  if (!url) {
+    return "";
+  }
+
+  try {
+    return new URL(url, apiBaseUrl).pathname;
+  } catch {
+    return url;
+  }
+}
+
+function shouldTriggerUnauthorizedHandler(error: unknown) {
+  const e = error as {
+    response?: { status?: number };
+    config?: { url?: string };
+  };
+
+  if (e.response?.status !== 401) {
+    return false;
+  }
+
+  const requestPath = normalizeRequestPath(e.config?.url);
+  return !AUTH_ROUTES_THAT_HANDLE_401_LOCALLY.has(requestPath);
 }
 
 export const http = axios.create({
@@ -77,7 +112,7 @@ http.interceptors.response.use(
       }
     }
 
-    if (error?.response?.status === 401 && onUnauthorized) {
+    if (onUnauthorized && shouldTriggerUnauthorizedHandler(error)) {
       onUnauthorized();
     }
     if (error?.response?.status >= 500) {

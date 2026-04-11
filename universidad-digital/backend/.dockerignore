@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+coverage.xml
+venv/
+.venv/
+.git/
+.gitignore
+.env
+alembic/versions/*.pyc

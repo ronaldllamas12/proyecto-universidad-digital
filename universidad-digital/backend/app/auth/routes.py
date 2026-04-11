@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-from app.auth.schemas import (ForgotPasswordRequest, ForgotPasswordResponse,
+from app.auth.schemas import (ExchangeResetTokenRequest,
+                              ExchangeResetTokenResponse,
+                              ForgotPasswordRequest, ForgotPasswordResponse,
                               LoginRequest, MessageResponse,
                               ResetPasswordRequest, TokenResponse)
 from app.auth.services import (authenticate_user,
                                create_password_reset_token_for_email,
-                               create_token_for_user, extract_token_data,
-                               reset_password_with_token, revoke_token)
+                               create_token_for_user,
+                               exchange_password_reset_token,
+                               extract_token_data, reset_password_with_token,
+                               revoke_token)
 from app.core.config import settings
 from app.core.deps import get_current_user_dep, get_db
 from app.users.schemas import UserResponse
@@ -38,16 +42,12 @@ def forgot_password_endpoint(
     payload: ForgotPasswordRequest,
     db: Session = Depends(get_db),
 ) -> ForgotPasswordResponse:
-    token = create_password_reset_token_for_email(db, payload.email)
+    create_password_reset_token_for_email(db, payload.email)
     detail = (
-        "Si el correo está registrado, recibirás instrucciones para restablecer "
-        "tu contraseña."
+        "Si el correo está registrado, enviaremos instrucciones al correo "
+        "personal asociado a tu cuenta."
     )
-
-    # En desarrollo se retorna el token para facilitar pruebas manuales.
-    if settings.is_production:
-        return ForgotPasswordResponse(detail=detail)
-    return ForgotPasswordResponse(detail=detail, reset_token=token)
+    return ForgotPasswordResponse(detail=detail)
 
 
 @router.post("/reset-password", response_model=MessageResponse)
@@ -57,6 +57,15 @@ def reset_password_endpoint(
 ) -> MessageResponse:
     reset_password_with_token(db, payload.token, payload.new_password)
     return MessageResponse(detail="Contraseña restablecida correctamente.")
+
+
+@router.post("/reset-password/exchange", response_model=ExchangeResetTokenResponse)
+def exchange_reset_password_token_endpoint(
+    payload: ExchangeResetTokenRequest,
+    db: Session = Depends(get_db),
+) -> ExchangeResetTokenResponse:
+    session_token = exchange_password_reset_token(db, payload.token)
+    return ExchangeResetTokenResponse(session_token=session_token)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

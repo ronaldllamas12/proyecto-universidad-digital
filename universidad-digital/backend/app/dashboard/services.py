@@ -13,6 +13,7 @@ from app.grades.models import Grade
 # DASHBOARD  ADMINISTRADOR
 # ===========================
 def get_admin_dashboard(db: Session):
+    normalized_role_name = func.lower(Role.name)
 
     # Total usuarios activos
     total_users = db.query(func.count(User.id)).filter(User.is_active).scalar()
@@ -21,7 +22,7 @@ def get_admin_dashboard(db: Session):
     total_students = (
         db.query(func.count(User.id))
         .join(User.roles)
-        .filter(Role.name == "Estudiante", User.is_active)
+        .filter(normalized_role_name.like("estudiante%"), User.is_active)
         .scalar()
     )
 
@@ -29,7 +30,7 @@ def get_admin_dashboard(db: Session):
     total_teachers = (
         db.query(func.count(User.id.distinct()))
         .join(User.roles)
-        .filter(Role.name == "Docente", User.is_active)
+        .filter(normalized_role_name.like("docente%"), User.is_active)
         .scalar()
     )
 
