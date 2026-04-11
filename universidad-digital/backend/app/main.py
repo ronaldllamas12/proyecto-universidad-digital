@@ -3,25 +3,24 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import Any
 
+from app.auth.routes import router as auth_router
+from app.core.config import settings
+from app.core.database import SessionLocal, init_db
+from app.core.errors import (AppError, ConflictError, ForbiddenError,
+                             NotFoundError, UnauthorizedError)
+from app.dashboard.router import router as dashboard_router
+from app.enrollments.routes import router as enrollments_router
+from app.grades.routes import router as grades_router
+from app.periods.routes import router as periods_router
+from app.roles.routes import router as roles_router
+from app.roles.services import ensure_default_roles
+from app.subjects.routes import router as subjects_router
+from app.users.routes import router as users_router
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
-
-from app.core.config import settings
-from app.core.database import SessionLocal, init_db
-from app.core.errors import AppError, ConflictError, ForbiddenError, NotFoundError, UnauthorizedError
-from app.roles.services import ensure_default_roles
-from app.auth.routes import router as auth_router
-from app.enrollments.routes import router as enrollments_router
-from app.grades.routes import router as grades_router
-from app.periods.routes import router as periods_router
-from app.roles.routes import router as roles_router
-from app.subjects.routes import router as subjects_router
-from app.users.routes import router as users_router
-from app.dashboard.router import router as dashboard_router
-
 
 SECURITY_RESPONSE_HEADERS: tuple[tuple[str, str], ...] = (
     ("x-content-type-options", "nosniff"),
@@ -85,12 +84,13 @@ allowed_origins = settings.cors_origins or [
     "http://127.0.0.1:5173","https://proyecto-universidad-digital.onrender.com",
     "https://universidad-digital.onrender.com",
     "https://proyecto-universidad-digital-backen.vercel.app",
-    "https://proyecto-universidad-digital-zj37.vercel.app"
+    "https://proyecto-universidad-digital-zj37.vercel.app",
+    "https://proyecto-universidad-digital-zj37-g4hkxbx0t.vercel.app"
 ]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
