@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -44,6 +44,21 @@ def test_create_period_rejects_same_day_end_when_start_is_today():
     )
 
     with pytest.raises(ConflictError, match="fecha de inicio es hoy"):
+        periods_services.create_period(db, data)
+
+
+def test_create_period_rejects_start_date_before_today():
+    db = Mock()
+    db.scalar.return_value = None
+    today = date.today()
+    data = AcademicPeriodCreate.model_construct(
+        code="2026-OLD",
+        name="Periodo pasado",
+        start_date=today - timedelta(days=1),
+        end_date=today + timedelta(days=30),
+    )
+
+    with pytest.raises(ConflictError, match="fecha de inicio no puede ser anterior"):
         periods_services.create_period(db, data)
 
 

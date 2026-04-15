@@ -13,6 +13,8 @@ def create_period(db: Session, data: AcademicPeriodCreate) -> AcademicPeriod:
     """Crea un periodo académico."""
     if db.scalar(select(AcademicPeriod).where(AcademicPeriod.code == data.code)):
         raise ConflictError("El código de periodo ya existe.")
+    if data.start_date < date.today():
+        raise ConflictError("La fecha de inicio no puede ser anterior a la fecha actual.")
     if data.end_date < data.start_date:
         raise ConflictError("La fecha de fin no puede ser anterior a la de inicio.")
     if data.start_date == date.today() and data.end_date == data.start_date:

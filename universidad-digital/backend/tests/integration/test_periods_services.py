@@ -1,19 +1,12 @@
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
-from pydantic import ValidationError
-from sqlalchemy.orm import Session
-
 from app.core.errors import ConflictError, NotFoundError
 from app.periods.schemas import AcademicPeriodCreate, AcademicPeriodUpdate
-from app.periods.services import (
-    create_period,
-    deactivate_period,
-    get_period,
-    list_periods,
-    update_period,
-)
-
+from app.periods.services import (create_period, deactivate_period, get_period,
+                                  list_periods, update_period)
+from pydantic import ValidationError
+from sqlalchemy.orm import Session
 
 pytestmark = [pytest.mark.integration, pytest.mark.db]
 
@@ -21,9 +14,13 @@ pytestmark = [pytest.mark.integration, pytest.mark.db]
 def _period_data(
     code: str = "2026-1",
     name: str = "Periodo 2026-1",
-    start: date = date(2026, 1, 1),
-    end: date = date(2026, 6, 30),
+    start: date | None = None,
+    end: date | None = None,
 ) -> AcademicPeriodCreate:
+    if start is None:
+        start = date.today() + timedelta(days=1)
+    if end is None:
+        end = start + timedelta(days=180)
     return AcademicPeriodCreate(
         code=code,
         name=name,
@@ -46,6 +43,18 @@ def test_create_period_raises_conflict_on_duplicate_code(db: Session) -> None:
 
     with pytest.raises(ConflictError, match="código de periodo ya existe"):
         create_period(db, _period_data(code="2026-A"))
+
+
+def test_create_period_rejects_start_date_in_past(db: Session) -> None:
+    with pytest.raises(ConflictError, match="fecha de inicio no puede ser anterior"):
+        create_period(
+            db,
+            _period_data(
+                code="2026-PAST",
+                start=date.today() - timedelta(days=1),
+                end=date.today(),
+            ),
+        )
 
 
 def test_create_period_schema_rejects_invalid_date_range() -> None:
