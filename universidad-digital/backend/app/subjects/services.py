@@ -1,21 +1,28 @@
 from __future__ import annotations
 
-from sqlalchemy import select, func
-from sqlalchemy.orm import Session
-
 from app.core.errors import ConflictError, NotFoundError
+from app.enrollments.models import Enrollment
 from app.subjects.models import Subject
 from app.subjects.schemas import SubjectCreate, SubjectUpdate
-from app.enrollments.models import Enrollment
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+DUPLICATE_SUBJECT_CODE_MESSAGE = "Ya se encuentra una materia registrada con ese código."
 
 
 def create_subject(db: Session, data: SubjectCreate) -> Subject:
     """Crea una materia."""
-    if db.scalar(select(Subject).where(Subject.code == data.code)):
-        raise ConflictError("El código de materia ya existe.")
+    normalized_code = data.code.strip().upper()
+    if db.scalar(select(Subject).where(func.upper(Subject.code) == normalized_code)):
+        raise ConflictError(DUPLICATE_SUBJECT_CODE_MESSAGE)
     subject = Subject(code=data.code, name=data.name, credits=data.credits)
     db.add(subject)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise ConflictError(DUPLICATE_SUBJECT_CODE_MESSAGE) from None
     db.refresh(subject)
     return subject
 

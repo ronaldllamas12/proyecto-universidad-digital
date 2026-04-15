@@ -1,12 +1,11 @@
 # tests/e2e/test_enrollment_flow.py
 
+from datetime import date, timedelta
+
 import pytest
-from datetime import date
-
-from httpx import AsyncClient
 from fastapi import status
-from tests.factories import UserFactory, RoleFactory
-
+from httpx import AsyncClient
+from tests.factories import RoleFactory, UserFactory
 
 # marcar todo el archivo como e2e + asyncio
 pytestmark = [pytest.mark.e2e, pytest.mark.asyncio]
@@ -101,11 +100,13 @@ class TestEnrollmentFlow:
 
         print(f"Asignatura creada ID={subject_id}")
 
+        period_start = date.today() + timedelta(days=1)
+        period_end = period_start + timedelta(days=180)
         period_data = {
-            "code": "2026-1",
-            "name": "Periodo 2026-1",
-            "start_date": date(2026, 1, 1).isoformat(),
-            "end_date": date(2026, 6, 30).isoformat(),
+            "code": f"{period_start.year}-1",
+            "name": f"Periodo {period_start.year}-1",
+            "start_date": period_start.isoformat(),
+            "end_date": period_end.isoformat(),
         }
 
         period_response = await admin_client.post(

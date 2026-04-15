@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getStudentMetrics, type StudentMetrics } from "../../api/estudiantes";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+    Bar,
+    BarChart,
+    Cell,
+    Legend,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
+import { getStudentMetrics, type StudentMetrics } from "../../api/estudiantes";
+import { GradeIcon, PeriodIcon, SubjectIcon } from "../../components/DashboardIcons";
 
 const CHART_COLORS = ["#6366f1", "#10b981", "#f59e0b"];
 
@@ -67,17 +68,23 @@ export function StudentDashboard() {
 
       <section className="metrics-grid" aria-label="Métricas principales">
         <div className="metric-card">
-          <div className="metric-card__icon metric-card__icon--primary" aria-hidden />
+          <div className="metric-card__icon metric-card__icon--primary" aria-hidden>
+            <SubjectIcon className="metric-card__icon-svg" />
+          </div>
           <span>Materias inscritas</span>
           <strong>{metrics.enrolled_subjects}</strong>
         </div>
         <div className="metric-card">
-          <div className="metric-card__icon metric-card__icon--success" aria-hidden />
+          <div className="metric-card__icon metric-card__icon--success" aria-hidden>
+            <PeriodIcon className="metric-card__icon-svg" />
+          </div>
           <span>Periodos activos</span>
           <strong>{metrics.active_periods}</strong>
         </div>
         <div className="metric-card">
-          <div className="metric-card__icon metric-card__icon--warning" aria-hidden />
+          <div className="metric-card__icon metric-card__icon--warning" aria-hidden>
+            <GradeIcon className="metric-card__icon-svg" />
+          </div>
           <span>Calificaciones registradas</span>
           <strong>{metrics.grades_count}</strong>
         </div>

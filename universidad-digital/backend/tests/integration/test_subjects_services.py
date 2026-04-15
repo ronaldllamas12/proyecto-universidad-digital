@@ -1,22 +1,15 @@
 from datetime import date
 
 import pytest
-from sqlalchemy.orm import Session
-
 from app.core.errors import ConflictError, NotFoundError
 from app.enrollments.models import Enrollment
 from app.periods.models import AcademicPeriod
 from app.subjects.models import Subject
 from app.subjects.schemas import SubjectCreate, SubjectUpdate
-from app.subjects.services import (
-    create_subject,
-    deactivate_subject,
-    get_subject,
-    list_subjects,
-    update_subject,
-)
+from app.subjects.services import (create_subject, deactivate_subject,
+                                   get_subject, list_subjects, update_subject)
 from app.users.models import User
-
+from sqlalchemy.orm import Session
 
 pytestmark = [pytest.mark.integration, pytest.mark.db]
 
@@ -77,7 +70,7 @@ def test_create_subject_success(db: Session) -> None:
 def test_create_subject_raises_conflict_on_duplicate_code(db: Session) -> None:
     _create_subject(db, code="MAT302")
 
-    with pytest.raises(ConflictError, match="código de materia ya existe"):
+    with pytest.raises(ConflictError, match="materia registrada con ese código"):
         _create_subject(db, code="MAT302")
 
 

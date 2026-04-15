@@ -1,20 +1,29 @@
-import { useFetch } from "../../hooks/useFetch";
-import { getAdminMetrics, type AdminMetrics } from "../../api/dashboard";
-import { Alert } from "../../components/Alert";
-import { getErrorMessage } from "../../utils/apiError";
 import { NavLink } from "react-router-dom";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+    Bar,
+    BarChart,
+    Cell,
+    Legend,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
+import { getAdminMetrics, type AdminMetrics } from "../../api/dashboard";
+import { Alert } from "../../components/Alert";
+import {
+    EnrollmentIcon,
+    PeriodIcon,
+    StudentIcon,
+    SubjectIcon,
+    TeacherIcon,
+    UsersIcon,
+    WarningIcon,
+} from "../../components/DashboardIcons";
+import { useFetch } from "../../hooks/useFetch";
+import { getErrorMessage } from "../../utils/apiError";
 
 const METRIC_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#3b82f6", "#8b5cf6"];
 
@@ -97,7 +106,9 @@ export function AdminDashboard() {
           <div
             className="metric-card__icon metric-card__icon--primary"
             aria-hidden
-          />
+          >
+            <UsersIcon className="metric-card__icon-svg" />
+          </div>
           <span>Usuarios</span>
           <strong>{metrics.total_users}</strong>
         </NavLink>
@@ -109,7 +120,9 @@ export function AdminDashboard() {
           <div
             className="metric-card__icon metric-card__icon--success"
             aria-hidden
-          />
+          >
+            <StudentIcon className="metric-card__icon-svg" />
+          </div>
           <span>Estudiantes activos</span>
           <strong>{metrics.total_students}</strong>
         </NavLink>
@@ -121,7 +134,9 @@ export function AdminDashboard() {
           <div
             className="metric-card__icon metric-card__icon--warning"
             aria-hidden
-          />
+          >
+            <TeacherIcon className="metric-card__icon-svg" />
+          </div>
           <span>Docentes activos</span>
           <strong>{metrics.total_teachers}</strong>
         </NavLink>
@@ -133,7 +148,9 @@ export function AdminDashboard() {
           <div
             className="metric-card__icon metric-card__icon--info"
             aria-hidden
-          />
+          >
+            <SubjectIcon className="metric-card__icon-svg" />
+          </div>
           <span>Materias</span>
           <strong>{metrics.total_subjects}</strong>
         </NavLink>
@@ -144,7 +161,9 @@ export function AdminDashboard() {
           <div
             className="metric-card__icon metric-card__icon--primary"
             aria-hidden
-          />
+          >
+            <PeriodIcon className="metric-card__icon-svg" />
+          </div>
           <span>Periodos activos</span>
           <strong>{metrics.active_periods}</strong>
         </NavLink>
@@ -156,7 +175,9 @@ export function AdminDashboard() {
           <div
             className="metric-card__icon metric-card__icon--primary"
             aria-hidden
-          />
+          >
+            <EnrollmentIcon className="metric-card__icon-svg" />
+          </div>
           <span>Inscripciones</span>
           <strong>{metrics.total_enrollments}</strong>
         </NavLink>
@@ -168,7 +189,9 @@ export function AdminDashboard() {
           <div
             className="metric-card__icon metric-card__icon--warning"
             aria-hidden
-          />
+          >
+            <WarningIcon className="metric-card__icon-svg" />
+          </div>
           <span>Inscripciones sin docente</span>
           <strong>Ver</strong>
         </NavLink>

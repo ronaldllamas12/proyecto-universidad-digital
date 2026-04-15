@@ -1,20 +1,25 @@
-import { useFetch } from "../../hooks/useFetch";
-import { getTeacherMetrics, type TeacherMetrics } from "../../api/teachers";
-import { Alert } from "../../components/Alert";
-import { getErrorMessage } from "../../utils/apiError";
 import { NavLink } from "react-router-dom";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+    Bar,
+    BarChart,
+    Cell,
+    Legend,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
+import { getTeacherMetrics, type TeacherMetrics } from "../../api/teachers";
+import { Alert } from "../../components/Alert";
+import {
+    GradeIcon,
+    StudentIcon,
+    SubjectIcon,
+} from "../../components/DashboardIcons";
+import { useFetch } from "../../hooks/useFetch";
+import { getErrorMessage } from "../../utils/apiError";
 
 const CHART_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#3b82f6"];
 
@@ -84,7 +89,9 @@ export function TeacherDashboard() {
             <div
               className="metric-card__icon metric-card__icon--primary"
               aria-hidden
-            />
+            >
+              <SubjectIcon className="metric-card__icon-svg" />
+            </div>
             <span>Materias asignadas</span>
             <strong>{metrics.total_subjects}</strong>
           </NavLink>
@@ -95,7 +102,9 @@ export function TeacherDashboard() {
             <div
               className="metric-card__icon metric-card__icon--success"
               aria-hidden
-            />
+            >
+              <StudentIcon className="metric-card__icon-svg" />
+            </div>
           
             <span>Estudiantes Inscritos</span>
             <strong>{metrics.total_students}</strong>
@@ -107,7 +116,9 @@ export function TeacherDashboard() {
             <div
               className="metric-card__icon metric-card__icon--warning"
               aria-hidden
-            />
+            >
+              <GradeIcon className="metric-card__icon-svg" />
+            </div>
             <span>Calificaciones de Estudiantes</span>
             <strong>{metrics.total_grades}</strong>
           </NavLink>
