@@ -1,4 +1,5 @@
-""" Configuración centralizada para la aplicación."""
+"""Configuración centralizada para la aplicación."""
+
 import json
 import os
 from typing import Any, Literal
@@ -37,8 +38,13 @@ class Settings(BaseSettings):
     smtp_username: str | None = None
     smtp_password: str | None = None
     smtp_from_email: str | None = None
+    smtp_from_name: str = "Universidad Digital"
     smtp_use_tls: bool = True
-    frontend_reset_password_url: str = "https://proyecto-universidad-digital-zj37-g4hkxbx0t.vercel.app/forgot-password "
+    smtp_use_ssl: bool = False
+    smtp_timeout_seconds: int = 10
+    frontend_reset_password_url: str = (
+        "https://proyecto-universidad-digital-zj37-g4hkxbx0t.vercel.app/forgot-password"
+    )
     cookie_name: str = "access_token"
     cookie_secure: bool = True if env == "production" else False
     cookie_samesite: Literal["lax", "strict", "none"] = (
@@ -48,10 +54,14 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(default_factory=list)
     auto_create_tables: bool = True
 
+    seed_admin_email: str = "admin@universidad.edu"
+    seed_admin_password: str = "Admin1234567!"
+    seed_admin_name: str = "Administrador"
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: Any) -> list[str]:
-        """ Permite configurar CORS_ORIGINS como una lista JSON, 
+        """Permite configurar CORS_ORIGINS como una lista JSON,
         texto separado por comas o una lista real."""
         if value is None:
             return []
@@ -67,7 +77,9 @@ class Settings(BaseSettings):
             if raw_value.startswith("["):
                 parsed = json.loads(raw_value)
                 if not isinstance(parsed, list):
-                    raise ValueError("APP_CORS_ORIGINS debe ser una lista JSON o texto separado por comas.")
+                    raise ValueError(
+                        "APP_CORS_ORIGINS debe ser una lista JSON o texto separado por comas."
+                    )
                 return [str(item).strip() for item in parsed if str(item).strip()]
 
             return [origin.strip() for origin in raw_value.split(",") if origin.strip()]
@@ -77,24 +89,31 @@ class Settings(BaseSettings):
     @field_validator("cookie_samesite", mode="before")
     @classmethod
     def validate_cookie_samesite(cls, value: Any) -> Literal["lax", "strict", "none"]:
-        """ Valida que APP_COOKIE_SAMESITE sea lax, strict o none, sin importar mayúsculas o espacios."""
+        """Valida que APP_COOKIE_SAMESITE sea lax, strict o none, sin importar mayúsculas o espacios."""
         normalized = str(value).strip().lower()
         allowed = {"lax", "strict", "none"}
         if normalized not in allowed:
             raise ValueError("APP_COOKIE_SAMESITE debe ser: lax, strict o none.")
         return normalized  # type: ignore[return-value]
 
+    @field_validator("frontend_reset_password_url", mode="before")
+    @classmethod
+    def normalize_frontend_reset_password_url(cls, value: Any) -> str:
+        raw = str(value).strip() if value is not None else ""
+        if not raw:
+            raise ValueError("APP_FRONTEND_RESET_PASSWORD_URL es obligatorio.")
+        return raw
+
     @property
     def db_url(self) -> str:
         # Render/Vercel pueden definir estas variables automáticamente
         db = (
-    os.getenv("DATABASE_URL")
-    or os.getenv("APP_DATABASE_URL")
-    or self.database_url
-)
+            os.getenv("DATABASE_URL")
+            or os.getenv("APP_DATABASE_URL")
+            or self.database_url
+        )
 
-        if self.is_production and not (
-            os.getenv("DATABASE_URL") ):
+        if self.is_production and not (os.getenv("DATABASE_URL")):
             raise RuntimeError(
                 "DATABASE_URL (o APP_DATABASE_URL) es obligatorio en producción."
             )

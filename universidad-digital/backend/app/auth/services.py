@@ -11,8 +11,13 @@ from app.auth.role_utils import normalize_role_names, user_role_names
 from app.core.config import settings
 from app.core.errors import ForbiddenError, NotFoundError, UnauthorizedError
 from app.core.mailer import send_password_reset_email
-from app.core.security import (create_access_token, decode_access_token,
-                               hash_password, is_jwt_error, verify_password)
+from app.core.security import (
+    create_access_token,
+    decode_access_token,
+    hash_password,
+    is_jwt_error,
+    verify_password,
+)
 from app.users.models import User
 from fastapi import Request
 from sqlalchemy import select
@@ -55,8 +60,7 @@ def create_password_reset_token_for_email(db: Session, email: str) -> str | None
     if not user or not user.is_active:
         return None
 
-    if not user.recovery_email:
-        return None
+    recipient_email = user.recovery_email or user.email
 
     jti = uuid4().hex
     token = create_access_token(
@@ -72,7 +76,7 @@ def create_password_reset_token_for_email(db: Session, email: str) -> str | None
     reset_link = f"{settings.frontend_reset_password_url}#token={token}"
 
     try:
-        send_password_reset_email(user.recovery_email, reset_link)
+        send_password_reset_email(recipient_email, reset_link)
     except (smtplib.SMTPException, OSError, ValueError):
         # Evita revelar errores internos al cliente y mantiene respuesta genérica.
         logger.exception("No se pudo enviar correo de recuperación.")

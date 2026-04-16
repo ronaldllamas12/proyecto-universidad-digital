@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: universidad_db
     restart: unless-stopped
     environment:
       POSTGRES_DB: universidad
@@ -17,11 +16,31 @@ services:
       timeout: 5s
       retries: 5
 
+  db_backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      PGPASSWORD: admin
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - pg_backups:/backups
+    command:
+      - sh
+      - -lc
+      - |
+        while true; do
+          ts=$(date +%Y%m%d_%H%M%S);
+          pg_dump -h db -U postgres -d universidad > /backups/universidad_$${ts}.sql;
+          find /backups -type f -name "universidad_*.sql" -mtime +7 -delete;
+          sleep 86400;
+        done
+
   backend:
     build:
-      context: ./backend
+      context: ./universidad-digital/backend
       dockerfile: Dockerfile
-    container_name: universidad_backend
     restart: unless-stopped
     environment:
       APP_ENV: development
@@ -29,22 +48,28 @@ services:
       DATABASE_URL: postgresql+psycopg://postgres:admin@db:5432/universidad
       APP_CORS_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000"]'
       APP_COOKIE_SAMESITE: lax
+      APP_SEED_ADMIN_EMAIL: admin@universidad.edu
+      APP_SEED_ADMIN_PASSWORD: Admin1234567!
+      APP_SEED_ADMIN_NAME: Administrador
     ports:
       - "8000:8000"
+    volumes:
+      - ./universidad-digital/backend:/app
+      - backend_data:/app/data
+      - backend_logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
 
   frontend:
     build:
-      context: ./frontend
+      context: ./universidad-digital/frontend
       dockerfile: Dockerfile
-    container_name: universidad_frontend
     restart: unless-stopped
     environment:
       VITE_API_BASE_URL: http://localhost:8000
     volumes:
-      - ./frontend:/app
+      - ./universidad-digital/frontend:/app
       - frontend_node_modules:/app/node_modules
     command:
       - sh
@@ -61,4 +86,7 @@ services:
 
 volumes:
   postgres_data:
+  pg_backups:
+  backend_data:
+  backend_logs:
   frontend_node_modules:

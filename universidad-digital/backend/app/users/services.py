@@ -99,6 +99,30 @@ def deactivate_user(db: Session, user_id: int) -> User:
     return user
 
 
+def ensure_default_admin(db: Session) -> None:
+    """Crea un usuario administrador por defecto si no existe ninguno."""
+    from app.core.config import settings
+
+    admin_role = db.scalar(select(Role).where(Role.name == "Administrador"))
+    if admin_role is None:
+        return
+
+    existing = db.scalar(
+        select(User).join(User.roles).where(Role.name == "Administrador")
+    )
+    if existing:
+        return
+
+    admin = User(
+        email=settings.seed_admin_email,
+        full_name=settings.seed_admin_name,
+        hashed_password=hash_password(settings.seed_admin_password),
+    )
+    admin.roles = [admin_role]
+    db.add(admin)
+    db.commit()
+
+
 def assign_role(db: Session, user_id: int, role_id: int) -> User:
     """Asigna un rol a un usuario."""
     user = get_user(db, user_id)

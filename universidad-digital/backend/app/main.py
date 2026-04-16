@@ -16,6 +16,7 @@ from app.roles.routes import router as roles_router
 from app.roles.services import ensure_default_roles
 from app.subjects.routes import router as subjects_router
 from app.users.routes import router as users_router
+from app.users.services import ensure_default_admin
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -64,6 +65,7 @@ async def lifespan(_: FastAPI):
     db = SessionLocal()
     try:
         ensure_default_roles(db)
+        ensure_default_admin(db)
     finally:
         db.close()
     yield
@@ -135,18 +137,23 @@ def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(status_code=400, content={"detail": exc.message})
 
 
+def _make_json_safe(obj: Any) -> Any:
+    """Convierte recursivamente cualquier valor no serializable a str."""
+    if isinstance(obj, dict):
+        return {k: _make_json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_make_json_safe(v) for v in obj]
+    try:
+        from json import dumps
+        dumps(obj)
+        return obj
+    except (TypeError, ValueError):
+        return str(obj)
+
+
 @app.exception_handler(RequestValidationError)
 def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
-    normalized_errors: list[dict[str, Any]] = []
-    for item in exc.errors():
-        normalized = dict(item)
-        ctx = normalized.get("ctx")
-        if isinstance(ctx, dict) and "error" in ctx:
-            safe_ctx = dict(ctx)
-            safe_ctx["error"] = str(safe_ctx["error"])
-            normalized["ctx"] = safe_ctx
-        normalized_errors.append(normalized)
-    return JSONResponse(status_code=422, content={"detail": normalized_errors})
+    return JSONResponse(status_code=422, content={"detail": _make_json_safe(exc.errors())})
 
 
 app.include_router(auth_router)

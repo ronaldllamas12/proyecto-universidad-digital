@@ -35,7 +35,9 @@ def _request(headers: dict | None = None, cookies: dict | None = None) -> Reques
         ("", None),
     ],
 )
-def test_get_token_from_request_prefers_authorization_header(header: str, expected: str | None):
+def test_get_token_from_request_prefers_authorization_header(
+    header: str, expected: str | None
+):
     request = _request(headers={"authorization": header})
 
     token = auth_services.get_token_from_request(request)
@@ -167,17 +169,55 @@ def test_create_password_reset_token_builds_expected_claims(monkeypatch):
         sent["reset_link"] = reset_link
 
     monkeypatch.setattr(auth_services, "create_access_token", _fake_create_access_token)
-    monkeypatch.setattr(auth_services, "send_password_reset_email", _fake_send_password_reset_email)
+    monkeypatch.setattr(
+        auth_services, "send_password_reset_email", _fake_send_password_reset_email
+    )
 
     token = auth_services.create_password_reset_token_for_email(db, user.email)
 
     assert token == "reset-token"
     assert captured["subject"] == str(user.id)
-    assert captured["expires_minutes"] == auth_services.settings.password_reset_token_expiration_minutes
+    assert (
+        captured["expires_minutes"]
+        == auth_services.settings.password_reset_token_expiration_minutes
+    )
     assert isinstance(captured["extra_claims"], dict)
     assert captured["extra_claims"]["typ"] == "password-reset"
     assert captured["extra_claims"]["pwd_fp"]
     assert sent["to_email"] == user.recovery_email
+    assert "#token=reset-token" in sent["reset_link"]
+
+
+def test_create_password_reset_token_falls_back_to_institutional_email(monkeypatch):
+    user = User(
+        id=78,
+        email="active@uni.com",
+        recovery_email=None,
+        full_name="Active",
+        hashed_password="hashed",
+        is_active=True,
+    )
+    db = Mock()
+    db.scalar.return_value = user
+
+    monkeypatch.setattr(
+        auth_services, "create_access_token", lambda **_kwargs: "reset-token"
+    )
+
+    sent: dict[str, str] = {}
+
+    def _fake_send_password_reset_email(to_email: str, reset_link: str):
+        sent["to_email"] = to_email
+        sent["reset_link"] = reset_link
+
+    monkeypatch.setattr(
+        auth_services, "send_password_reset_email", _fake_send_password_reset_email
+    )
+
+    token = auth_services.create_password_reset_token_for_email(db, user.email)
+
+    assert token == "reset-token"
+    assert sent["to_email"] == user.email
     assert "#token=reset-token" in sent["reset_link"]
 
 
@@ -205,7 +245,9 @@ def test_reset_password_with_token_updates_hash(monkeypatch):
             "exp": int(datetime.now(timezone.utc).timestamp()) + 600,
         },
     )
-    monkeypatch.setattr(auth_services, "hash_password", lambda value: f"hashed::{value}")
+    monkeypatch.setattr(
+        auth_services, "hash_password", lambda value: f"hashed::{value}"
+    )
     monkeypatch.setattr(auth_services, "is_token_revoked", lambda *_: False)
 
     auth_services.reset_password_with_token(db, "valid-token", "NewPass123")
@@ -219,18 +261,50 @@ def test_reset_password_with_token_updates_hash(monkeypatch):
     "payload",
     [
         {"typ": "access", "sub": "10", "pwd_fp": "fp"},
-        {"typ": "password-reset-session", "sub": None, "pwd_fp": "fp", "jti": "j1", "exp": 1},
-        {"typ": "password-reset-session", "sub": "10", "pwd_fp": None, "jti": "j1", "exp": 1},
-        {"typ": "password-reset-session", "sub": "10", "pwd_fp": "fp", "jti": None, "exp": 1},
-        {"typ": "password-reset-session", "sub": "10", "pwd_fp": "fp", "jti": "j1", "exp": None},
-        {"typ": "password-reset-session", "sub": "abc", "pwd_fp": "fp", "jti": "j1", "exp": 1},
+        {
+            "typ": "password-reset-session",
+            "sub": None,
+            "pwd_fp": "fp",
+            "jti": "j1",
+            "exp": 1,
+        },
+        {
+            "typ": "password-reset-session",
+            "sub": "10",
+            "pwd_fp": None,
+            "jti": "j1",
+            "exp": 1,
+        },
+        {
+            "typ": "password-reset-session",
+            "sub": "10",
+            "pwd_fp": "fp",
+            "jti": None,
+            "exp": 1,
+        },
+        {
+            "typ": "password-reset-session",
+            "sub": "10",
+            "pwd_fp": "fp",
+            "jti": "j1",
+            "exp": None,
+        },
+        {
+            "typ": "password-reset-session",
+            "sub": "abc",
+            "pwd_fp": "fp",
+            "jti": "j1",
+            "exp": 1,
+        },
     ],
 )
 def test_reset_password_with_token_rejects_invalid_payload(monkeypatch, payload):
     db = Mock()
     monkeypatch.setattr(auth_services, "decode_access_token", lambda _token: payload)
 
-    with pytest.raises(UnauthorizedError, match="Token de recuperación inválido o expirado"):
+    with pytest.raises(
+        UnauthorizedError, match="Token de recuperación inválido o expirado"
+    ):
         auth_services.reset_password_with_token(db, "invalid", "NewPass123")
 
 
@@ -259,11 +333,15 @@ def test_reset_password_with_token_rejects_fingerprint_mismatch(monkeypatch):
     )
     monkeypatch.setattr(auth_services, "is_token_revoked", lambda *_: False)
 
-    with pytest.raises(UnauthorizedError, match="Token de recuperación inválido o expirado"):
+    with pytest.raises(
+        UnauthorizedError, match="Token de recuperación inválido o expirado"
+    ):
         auth_services.reset_password_with_token(db, "token", "NewPass123")
 
 
-def test_exchange_password_reset_token_revokes_original_and_returns_session(monkeypatch):
+def test_exchange_password_reset_token_revokes_original_and_returns_session(
+    monkeypatch,
+):
     user = User(
         id=99,
         email="active@uni.com",
@@ -325,5 +403,7 @@ def test_exchange_password_reset_token_rejects_revoked_token(monkeypatch):
     )
     monkeypatch.setattr(auth_services, "is_token_revoked", lambda *_: True)
 
-    with pytest.raises(UnauthorizedError, match="Token de recuperación inválido o expirado"):
+    with pytest.raises(
+        UnauthorizedError, match="Token de recuperación inválido o expirado"
+    ):
         auth_services.exchange_password_reset_token(db, "already-used")

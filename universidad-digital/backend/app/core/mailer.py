@@ -13,7 +13,7 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
 
     message = EmailMessage()
     message["Subject"] = "Recuperación de contraseña - Universidad Digital"
-    message["From"] = settings.smtp_from_email
+    message["From"] = f"{settings.smtp_from_name} <{settings.smtp_from_email}>"
     message["To"] = to_email
     message.set_content(
         "Recibimos una solicitud para restablecer tu contraseña.\n\n"
@@ -21,8 +21,11 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
         "Si no solicitaste este cambio, ignora este correo."
     )
 
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
-        if settings.smtp_use_tls:
+    smtp_cls = smtplib.SMTP_SSL if settings.smtp_use_ssl else smtplib.SMTP
+    with smtp_cls(
+        settings.smtp_host, settings.smtp_port, timeout=settings.smtp_timeout_seconds
+    ) as server:
+        if settings.smtp_use_tls and not settings.smtp_use_ssl:
             server.starttls()
         if settings.smtp_username and settings.smtp_password:
             server.login(settings.smtp_username, settings.smtp_password)
