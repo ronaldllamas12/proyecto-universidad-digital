@@ -105,3 +105,6 @@ coverage/
 *.bak
 *.orig
 .env.backup
+
+# Ignore coverage.xml
+universidad-digital/backend/coverage.xml
