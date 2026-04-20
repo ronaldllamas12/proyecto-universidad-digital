@@ -164,9 +164,9 @@ def test_create_password_reset_token_builds_expected_claims(monkeypatch):
 
     sent: dict[str, str] = {}
 
-    def _fake_send_password_reset_email(to_email: str, reset_link: str):
-        sent["to_email"] = to_email
-        sent["reset_link"] = reset_link
+    def _fake_send_password_reset_email(*, recipient_email: str, token: str):
+        sent["to_email"] = recipient_email
+        sent["token"] = token
 
     monkeypatch.setattr(auth_services, "create_access_token", _fake_create_access_token)
     monkeypatch.setattr(
@@ -185,7 +185,7 @@ def test_create_password_reset_token_builds_expected_claims(monkeypatch):
     assert captured["extra_claims"]["typ"] == "password-reset"
     assert captured["extra_claims"]["pwd_fp"]
     assert sent["to_email"] == user.recovery_email
-    assert "#token=reset-token" in sent["reset_link"]
+    assert sent["token"] == "reset-token"
 
 
 def test_create_password_reset_token_falls_back_to_institutional_email(monkeypatch):
@@ -206,9 +206,9 @@ def test_create_password_reset_token_falls_back_to_institutional_email(monkeypat
 
     sent: dict[str, str] = {}
 
-    def _fake_send_password_reset_email(to_email: str, reset_link: str):
-        sent["to_email"] = to_email
-        sent["reset_link"] = reset_link
+    def _fake_send_password_reset_email(*, recipient_email: str, token: str):
+        sent["to_email"] = recipient_email
+        sent["token"] = token
 
     monkeypatch.setattr(
         auth_services, "send_password_reset_email", _fake_send_password_reset_email
@@ -218,7 +218,7 @@ def test_create_password_reset_token_falls_back_to_institutional_email(monkeypat
 
     assert token == "reset-token"
     assert sent["to_email"] == user.email
-    assert "#token=reset-token" in sent["reset_link"]
+    assert sent["token"] == "reset-token"
 
 
 def test_reset_password_with_token_updates_hash(monkeypatch):
