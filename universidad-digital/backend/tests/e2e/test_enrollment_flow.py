@@ -5,6 +5,7 @@ from datetime import date, timedelta
 import pytest
 from fastapi import status
 from httpx import AsyncClient
+from tests.factories import RoleFactory, UserFactory
 
 # marcar todo el archivo como e2e + asyncio
 pytestmark = [pytest.mark.e2e, pytest.mark.asyncio]
