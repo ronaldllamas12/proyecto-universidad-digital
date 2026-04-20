@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     mail_http_timeout_seconds: int = 15
     mail_from_email: str | None = None
     mail_from_name: str | None = None
+    frontend_url: str | None = None
 
     smtp_host: str | None = None
     smtp_port: int = 587
@@ -109,6 +110,12 @@ class Settings(BaseSettings):
         if not raw:
             raise ValueError("APP_FRONTEND_RESET_PASSWORD_URL es obligatorio.")
         return raw
+
+    @field_validator("frontend_url", mode="before")
+    @classmethod
+    def normalize_frontend_url(cls, value: Any) -> str | None:
+        raw = str(value).strip() if value is not None else ""
+        return raw or None
 
     @property
     def db_url(self) -> str:

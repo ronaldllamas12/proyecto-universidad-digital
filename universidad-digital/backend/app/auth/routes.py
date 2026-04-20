@@ -1,16 +1,24 @@
 from __future__ import annotations
 
-from app.auth.schemas import (ExchangeResetTokenRequest,
-                              ExchangeResetTokenResponse,
-                              ForgotPasswordRequest, ForgotPasswordResponse,
-                              LoginRequest, MessageResponse,
-                              ResetPasswordRequest, TokenResponse)
-from app.auth.services import (authenticate_user,
-                               create_password_reset_token_for_email,
-                               create_token_for_user,
-                               exchange_password_reset_token,
-                               extract_token_data, reset_password_with_token,
-                               revoke_token)
+from app.auth.schemas import (
+    ExchangeResetTokenRequest,
+    ExchangeResetTokenResponse,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    LoginRequest,
+    MessageResponse,
+    ResetPasswordRequest,
+    TokenResponse,
+)
+from app.auth.services import (
+    authenticate_user,
+    create_password_reset_token_for_email,
+    create_token_for_user,
+    exchange_password_reset_token,
+    extract_token_data,
+    reset_password_with_token,
+    revoke_token,
+)
 from app.core.config import settings
 from app.core.deps import get_current_user_dep, get_db
 from app.users.schemas import UserResponse

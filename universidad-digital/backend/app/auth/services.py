@@ -18,7 +18,7 @@ from app.core.security import (
     verify_password,
 )
 from app.users.models import User
-from fastapi import Request
+from fastapi import HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -72,11 +72,9 @@ def create_password_reset_token_for_email(db: Session, email: str) -> str | None
         },
     )
 
-    reset_link = f"{settings.frontend_reset_password_url}#token={token}"
-
     try:
-        send_password_reset_email(recipient_email, reset_link)
-    except (OSError, ValueError):
+        send_password_reset_email(recipient_email=recipient_email, token=token)
+    except (HTTPException, OSError, ValueError):
         # Evita revelar errores internos al cliente y mantiene respuesta genérica.
         logger.exception("No se pudo enviar correo de recuperación.")
 
@@ -122,7 +120,7 @@ def exchange_password_reset_token(db: Session, token: str) -> str:
     revoke_token(db, str(jti), datetime.fromtimestamp(int(exp), tz=timezone.utc))
 
     session_jti = uuid4().hex
-    session_token = create_access_token(
+    return create_access_token(
         subject=str(user.id),
         jti=session_jti,
         expires_minutes=settings.password_reset_token_expiration_minutes,
@@ -131,7 +129,6 @@ def exchange_password_reset_token(db: Session, token: str) -> str:
             "pwd_fp": _password_fingerprint(user.hashed_password),
         },
     )
-    return session_token
 
 
 def reset_password_with_token(db: Session, token: str, new_password: str) -> None:
