@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     jwt_expiration_minutes: int = 60
     password_reset_token_expiration_minutes: int = 15
 
+    mailtrap_api_token: str | None = None
+    mailtrap_api_url: str = "https://send.api.mailtrap.io/api/send"
+    mail_http_timeout_seconds: int = 15
+    mail_from_email: str | None = None
+    mail_from_name: str | None = None
+
     smtp_host: str | None = None
     smtp_port: int = 587
     smtp_username: str | None = None

@@ -6,68 +6,40 @@ from app.core.mailer import send_password_reset_email
 pytestmark = [pytest.mark.unit]
 
 
-def test_send_password_reset_email_returns_false_when_smtp_not_configured(monkeypatch):
-    monkeypatch.setattr("app.core.mailer.settings.smtp_host", None)
-    monkeypatch.setattr("app.core.mailer.settings.smtp_from_email", None)
+def test_send_password_reset_email_returns_false_when_mailtrap_not_configured(
+    monkeypatch,
+):
+    monkeypatch.setattr("app.core.mailer.settings.mailtrap_api_token", None)
+    monkeypatch.setattr("app.core.mailer.settings.mail_from_email", None)
+    monkeypatch.delenv("APP_MAILTRAP_API_TOKEN", raising=False)
+    monkeypatch.delenv("MAILTRAP_API_TOKEN", raising=False)
+    monkeypatch.delenv("APP_TOKEN_MAILTRAP", raising=False)
+    monkeypatch.delenv("TOKEN_MAILTRAP", raising=False)
 
     sent = send_password_reset_email("user@example.com", "https://example.com/reset")
 
     assert sent is False
 
 
-def test_send_password_reset_email_uses_starttls_and_login(monkeypatch):
-    fake_server = MagicMock()
-    fake_context = MagicMock()
-    fake_context.__enter__.return_value = fake_server
+def test_send_password_reset_email_uses_mailtrap_http_when_configured(monkeypatch):
+    fake_response = MagicMock()
+    fake_response.raise_for_status = MagicMock()
+    fake_post = MagicMock(return_value=fake_response)
 
-    fake_smtp_ctor = MagicMock(return_value=fake_context)
-    monkeypatch.setattr("app.core.mailer.smtplib.SMTP", fake_smtp_ctor)
-
+    monkeypatch.setattr("app.core.mailer.httpx.post", fake_post)
+    monkeypatch.setattr("app.core.mailer.settings.mailtrap_api_token", "api-token")
+    monkeypatch.setattr("app.core.mailer.settings.mail_from_email", "noreply@ud.edu")
     monkeypatch.setattr(
-        "app.core.mailer.settings.smtp_host", "sandbox.smtp.mailtrap.io"
+        "app.core.mailer.settings.mail_from_name", "Universidad Digital"
     )
-    monkeypatch.setattr("app.core.mailer.settings.smtp_port", 587)
-    monkeypatch.setattr("app.core.mailer.settings.smtp_from_email", "noreply@ud.edu")
     monkeypatch.setattr(
-        "app.core.mailer.settings.smtp_from_name", "Universidad Digital"
+        "app.core.mailer.settings.mailtrap_api_url",
+        "https://send.api.mailtrap.io/api/send",
     )
-    monkeypatch.setattr("app.core.mailer.settings.smtp_username", "mailtrap-user")
-    monkeypatch.setattr("app.core.mailer.settings.smtp_password", "mailtrap-pass")
-    monkeypatch.setattr("app.core.mailer.settings.smtp_use_tls", True)
-    monkeypatch.setattr("app.core.mailer.settings.smtp_use_ssl", False)
-    monkeypatch.setattr("app.core.mailer.settings.smtp_timeout_seconds", 10)
+    monkeypatch.setattr("app.core.mailer.settings.mail_http_timeout_seconds", 15)
 
     sent = send_password_reset_email("user@example.com", "https://app/reset?token=abc")
 
     assert sent is True
-    fake_server.starttls.assert_called_once()
-    fake_server.login.assert_called_once_with("mailtrap-user", "mailtrap-pass")
-    fake_server.send_message.assert_called_once()
-
-
-def test_send_password_reset_email_uses_smtp_ssl_when_configured(monkeypatch):
-    fake_server = MagicMock()
-    fake_context = MagicMock()
-    fake_context.__enter__.return_value = fake_server
-
-    fake_smtp_ssl_ctor = MagicMock(return_value=fake_context)
-    monkeypatch.setattr("app.core.mailer.smtplib.SMTP_SSL", fake_smtp_ssl_ctor)
-
-    monkeypatch.setattr("app.core.mailer.settings.smtp_host", "live.smtp.mailtrap.io")
-    monkeypatch.setattr("app.core.mailer.settings.smtp_port", 465)
-    monkeypatch.setattr("app.core.mailer.settings.smtp_from_email", "noreply@ud.edu")
-    monkeypatch.setattr(
-        "app.core.mailer.settings.smtp_from_name", "Universidad Digital"
-    )
-    monkeypatch.setattr("app.core.mailer.settings.smtp_username", "mailtrap-user")
-    monkeypatch.setattr("app.core.mailer.settings.smtp_password", "mailtrap-pass")
-    monkeypatch.setattr("app.core.mailer.settings.smtp_use_tls", False)
-    monkeypatch.setattr("app.core.mailer.settings.smtp_use_ssl", True)
-    monkeypatch.setattr("app.core.mailer.settings.smtp_timeout_seconds", 10)
-
-    sent = send_password_reset_email("user@example.com", "https://app/reset?token=abc")
-
-    assert sent is True
-    fake_server.starttls.assert_not_called()
-    fake_server.login.assert_called_once_with("mailtrap-user", "mailtrap-pass")
-    fake_server.send_message.assert_called_once()
+    fake_post.assert_called_once()
+    fake_response.raise_for_status.assert_called_once()

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import smtplib
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -77,7 +76,7 @@ def create_password_reset_token_for_email(db: Session, email: str) -> str | None
 
     try:
         send_password_reset_email(recipient_email, reset_link)
-    except (smtplib.SMTPException, OSError, ValueError):
+    except (OSError, ValueError):
         # Evita revelar errores internos al cliente y mantiene respuesta genérica.
         logger.exception("No se pudo enviar correo de recuperación.")
 
