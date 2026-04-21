@@ -39,18 +39,8 @@ class Settings(BaseSettings):
     mail_from_email: str | None = None
     mail_from_name: str | None = None
     frontend_url: str | None = None
-
-    smtp_host: str | None = None
-    smtp_port: int = 587
-    smtp_username: str | None = None
-    smtp_password: str | None = None
-    smtp_from_email: str | None = None
-    smtp_from_name: str = "Universidad Digital"
-    smtp_use_tls: bool = True
-    smtp_use_ssl: bool = False
-    smtp_timeout_seconds: int = 10
     frontend_reset_password_url: str = (
-        "https://proyecto-universidad-digital-zj37-g4hkxbx0t.vercel.app/forgot-password"
+        "https://proyecto-universidad-digital-zj37.vercel.app"
     )
     cookie_name: str = "access_token"
     cookie_secure: bool = True if env == "production" else False

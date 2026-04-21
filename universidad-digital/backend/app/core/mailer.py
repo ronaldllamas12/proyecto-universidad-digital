@@ -35,7 +35,10 @@ def _build_reset_url(token: str) -> str:
         separator = "&" if "?" in reset_path_or_url else "?"
         return f"{reset_path_or_url}{separator}{urlencode({'token': token})}"
 
-    frontend_url = _get_required_setting(settings.frontend_url, "APP_FRONTEND_URL")
+    frontend_url = (
+        _get_required_setting(settings.frontend_url, "APP_FRONTEND_URL")
+        or "/forgot-password"
+    )
     reset_path = (
         reset_path_or_url
         if reset_path_or_url.startswith("/")
@@ -47,10 +50,7 @@ def _build_reset_url(token: str) -> str:
 def send_password_reset_email(*, recipient_email: str, token: str) -> None:
     """Envía el enlace de recuperación de contraseña usando la API HTTP de Mailtrap."""
     api_token = _get_required_setting(
-        settings.mailtrap_api_token,
-        "APP_MAILTRAP_API_TOKEN",
-        "SMTP_PASSWORD",
-        "PASSWORD",
+        settings.mailtrap_api_token, "APP_MAILTRAP_API_TOKEN"
     )
     mail_from = _get_required_setting(settings.mail_from_email, "APP_MAIL_FROM_EMAIL")
     mail_from_name = (settings.mail_from_name or "UNIVERSIDAD DIGITAL").strip()
