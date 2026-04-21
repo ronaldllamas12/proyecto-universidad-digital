@@ -1,11 +1,13 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import type { UserResponse } from "../api/auth";
-import { hasAppRole } from "../auth/roleHomePath";
-import { setAuthToken } from "../auth/token";
 import { setUnauthorizedHandler } from "../api/http";
+import { hasAppRole } from "../auth/roleHomePath";
+import { getAuthToken, setAuthToken } from "../auth/token";
 import * as authService from "../services/authService";
 import { getErrorMessage, isUnauthorized } from "../utils/apiError";
+
+const PUBLIC_AUTH_PATHS = new Set(["/login", "/forgot-password"]);
 
 type AuthContextValue = {
   user: UserResponse | null;
@@ -82,9 +84,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
+    const currentPath = window.location.pathname;
+    const hasStoredSession = Boolean(getAuthToken());
+    const shouldSkipInitialSessionValidation =
+      !hasStoredSession && PUBLIC_AUTH_PATHS.has(currentPath);
+
     setUnauthorizedHandler(() => {
       void logout();
     });
+
+    if (shouldSkipInitialSessionValidation) {
+      setUser(null);
+      setError(null);
+      setIsLoading(false);
+      return () => setUnauthorizedHandler(null);
+    }
 
     if (initialSessionResolved) {
       setUser(initialSessionUser);

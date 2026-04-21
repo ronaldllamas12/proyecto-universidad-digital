@@ -22,7 +22,17 @@ services:
       - key: APP_CORS_ORIGINS
         value: '["https://proyecto-universidad-digital-zj37.vercel.app","https://proyecto-universidad-digital.onrender.com","https://universidad-digital.onrender.com"]'
       - key: APP_FRONTEND_RESET_PASSWORD_URL
-        value: https://proyecto-universidad-digital-zj37.vercel.app/forgot-password
+        value: https://proyecto-universidad-digital-zj37-g4hkxbx0t.vercel.app/forgot-password
+      - key: APP_FRONTEND_URL
+        value: https://proyecto-universidad-digital-zj37-g4hkxbx0t.vercel.app
+      - key: APP_MAILTRAP_API_TOKEN
+        sync: false
+      - key: APP_MAILTRAP_API_URL
+        value: https://send.api.mailtrap.io/api/send
+      - key: APP_MAIL_FROM_EMAIL
+        value: no-reply@demomailtrap.co
+      - key: APP_MAIL_FROM_NAME
+        value: Universidad Digital
       - key: APP_COOKIE_SAMESITE
         value: none
       - key: PYTHON_VERSION
